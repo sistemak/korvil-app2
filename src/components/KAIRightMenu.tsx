@@ -1,9 +1,9 @@
 /* Menu lateral do K-AI: Tarefas, Configurações e atalhos externos. */
 
 import { useState } from 'react';
-import { X, Sparkles, Zap, Github, ListTodo, FlaskConical, CalendarClock, Settings, ChevronDown, Clapperboard } from 'lucide-react';
+import { X, Sparkles, Zap, Github, ListTodo, FlaskConical, CalendarClock, Settings, ChevronDown, Clapperboard, Brain } from 'lucide-react';
 
-export type KaiTarget = 'tasks' | 'laboratorio' | 'programacoes' | 'settings' | 'bolt' | 'github' | 'keditor';
+export type KaiTarget = 'tasks' | 'laboratorio' | 'programacoes' | 'settings' | 'bolt' | 'github' | 'keditor' | 'evolucao';
 
 interface Props {
   open: boolean;
@@ -19,6 +19,7 @@ export default function KAIRightMenu({ open, onClose, onSelect }: Props) {
     { label: 'Tarefas', icon: ListTodo, target: 'tasks' as const },
     { label: 'Laboratório', icon: FlaskConical, target: 'laboratorio' as const },
     { label: 'Programações', icon: CalendarClock, target: 'programacoes' as const },
+    { label: 'Evolução K-AI', icon: Brain, target: 'evolucao' as const },
   ];
 
   return (

@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Trash2, MessageSquare, ShieldCheck, Menu, Sparkles, ListTodo, FlaskConical, CalendarClock, Settings, ChevronDown } from 'lucide-react';
+import { X, Trash2, MessageSquare, ShieldCheck, Menu, Sparkles, ListTodo, FlaskConical, CalendarClock, Settings, ChevronDown, Brain } from 'lucide-react';
 import KAIRightMenu, { type KaiTarget } from '@/components/KAIRightMenu';
 import KAITasksPanel from '@/components/KAITasksPanel';
 import KaiProgramacoes from '@/components/KaiProgramacoes';
 import LaboratorioPage from '@/components/LaboratorioPage';
 import KEditorPage from '@/components/KEditorPage';
+import KaiEvolutionPanel from '@/components/KaiEvolutionPanel';
 import { publishPendingTasks } from '@/lib/kaiTasks';
 import { startAutomationScheduler, checkDue } from '@/lib/kaiAutomations';
 import BoltInputBox from '@/components/BoltInputBox';
@@ -99,6 +100,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
   const [programacoesOpen, setProgramacoesOpen] = useState(false);
   const [labOpen, setLabOpen] = useState(false);
   const [keditorOpen, setKeditorOpen] = useState(false);
+  const [evolutionOpen, setEvolutionOpen] = useState(false);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>(loadHistory);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -233,6 +235,19 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
       setProgramacoesOpen(true);
     }
     return stop;
+  }, [user]);
+
+  // Abriu por notificação de proposta do K-AI: abre o painel de evolução.
+  useEffect(() => {
+    if (!user) return;
+    const proposalId = new URLSearchParams(window.location.search).get('kai-proposal');
+    if (proposalId) {
+      const qs = new URLSearchParams(window.location.search);
+      qs.delete('kai-proposal');
+      const rest = qs.toString();
+      window.history.replaceState({}, '', window.location.pathname + (rest ? `?${rest}` : ''));
+      setEvolutionOpen(true);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -802,6 +817,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
           if (target === 'bolt') window.open('https://bolt.new', '_blank');
           if (target === 'github') window.open('https://github.com/sistemak/korvil-app', '_blank');
           if (target === 'keditor') setKeditorOpen(true);
+          if (target === 'evolucao') setEvolutionOpen(true);
         }}
       />
 
@@ -820,6 +836,8 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
       {labOpen && <LaboratorioPage onExit={() => setLabOpen(false)} />}
 
       {keditorOpen && <KEditorPage onExit={() => setKeditorOpen(false)} />}
+
+      {evolutionOpen && <KaiEvolutionPanel onClose={() => setEvolutionOpen(false)} />}
 
       {/* balõezinhos laterais */}
       <div className="fixed z-[89] pointer-events-none flex flex-col gap-1.5 items-end" style={{ right: window.innerWidth - pos.x + 8, top: pos.y + 12 }}>
@@ -851,6 +869,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
             { label: 'Tarefas', icon: ListTodo, target: 'tasks' as const },
             { label: 'Laboratório', icon: FlaskConical, target: 'laboratorio' as const },
             { label: 'Programações', icon: CalendarClock, target: 'programacoes' as const },
+            { label: 'Evolução K-AI', icon: Brain, target: 'evolucao' as const },
             { label: 'Configurações', icon: Settings, target: 'settings' as const },
           ].map((item) => {
             const Icon = item.icon;
@@ -862,6 +881,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
                   if (item.target === 'tasks') setTasksOpen(true);
                   if (item.target === 'laboratorio') setLabOpen(true);
                   if (item.target === 'programacoes') setProgramacoesOpen(true);
+                  if (item.target === 'evolucao') setEvolutionOpen(true);
                   if (item.target === 'settings') {
                     pushWhisper('Abra o ícone da sua conta no topo para configurar o perfil.');
                   }
