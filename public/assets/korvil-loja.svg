@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#0a0e1a"/>
+      <stop offset="70%" stop-color="#050810"/>
+      <stop offset="100%" stop-color="#000"/>
+    </radialGradient>
+    <linearGradient id="kgrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow2" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- background circle -->
+  <circle cx="128" cy="128" r="128" fill="url(#bg)"/>
+
+  <!-- outer ring -->
+  <circle cx="128" cy="128" r="120" fill="none" stroke="url(#ring)" stroke-width="3" opacity="0.9"/>
+  <circle cx="128" cy="128" r="116" fill="none" stroke="#a855f7" stroke-width="1" opacity="0.4"/>
+
+  <!-- circular text path -->
+  <defs>
+    <path id="topArc" d="M 128,128 m -104,0 a 104,104 0 0 1 208,0"/>
+    <path id="botArc" d="M 128,128 m -104,0 a 104,104 0 0 0 208,0"/>
+  </defs>
+  <text font-family="'Arial Black', sans-serif" font-size="15" font-weight="900" fill="#a855f7" letter-spacing="3" filter="url(#glow2)">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">K.L KORVIL LOJA</textPath>
+  </text>
+  <text font-family="'Arial Black', sans-serif" font-size="12" font-weight="700" fill="#06b6d4" letter-spacing="2" opacity="0.8">
+    <textPath href="#botArc" startOffset="50%" text-anchor="middle">MARKETPLACE OFICIAL</textPath>
+  </text>
+
+  <!-- raven silhouette at top -->
+  <g transform="translate(128, 72)" filter="url(#glow2)">
+    <path d="M -14,-8 L 0,-20 L 14,-8 L 10,-4 L 6,-12 L 0,-6 L -6,-12 L -10,-4 Z" fill="#22d3ee" opacity="0.85"/>
+    <path d="M -8,-2 L 0,-10 L 8,-2 L 0,2 Z" fill="#06b6d4" opacity="0.6"/>
+  </g>
+
+  <!-- central K -->
+  <g filter="url(#glow)">
+    <text x="128" y="138" font-family="'Arial Black', 'Impact', sans-serif" font-size="72" font-weight="900" fill="url(#kgrad)" text-anchor="middle" dominant-baseline="middle">K</text>
+  </g>
+
+  <!-- shopping bag icon subtle -->
+  <g transform="translate(128, 172)" filter="url(#glow2)">
+    <path d="M -14,2 L 14,2 L 16,16 L -16,16 Z" fill="none" stroke="#a855f7" stroke-width="2" opacity="0.7"/>
+    <path d="M -8,2 Q -8,-8 0,-8 Q 8,-8 8,2" fill="none" stroke="#06b6d4" stroke-width="2" opacity="0.6"/>
+  </g>
+</svg>

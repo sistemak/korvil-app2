@@ -1,0 +1,26 @@
+[functions.github-proxy]
+verify_jwt = false
+
+[functions.github-save]
+verify_jwt = false
+
+[functions.kai-brain]
+verify_jwt = false
+
+[functions.kai-automation-runner]
+verify_jwt = false
+
+[functions.korvil-ai]
+verify_jwt = false
+
+[functions.sok-files]
+verify_jwt = true
+
+[functions.send-transformacao-whatsapp]
+verify_jwt = false
+
+[functions.transformacao-ficha]
+verify_jwt = false
+
+[functions.notificar-atividade]
+verify_jwt = false

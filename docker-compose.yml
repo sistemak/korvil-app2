@@ -1,0 +1,9 @@
+services:
+  korvil-app:
+    build: .
+    container_name: korvil-app
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    env_file:
+      - .env
