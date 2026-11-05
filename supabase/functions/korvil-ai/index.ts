@@ -33,134 +33,155 @@ Responda sempre em português brasileiro, de forma natural, direta e útil. Máx
 Identidade: Você é K-AI v42. O usuário é o ADM da CENTRAL KORVIL.
 Se o usuário perguntar sobre produtos da loja, preços, frete, cupons, formas de pagamento, dê respostas concretas.${codebasePart}`;
 
-    async function callGroq(): Promise<string> {
-      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  // --- Provider calls ---
+
+  async function callGroq(): Promise<string> {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${GROQ}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/gpt-oss-120b",
+        temperature: 0.7,
+        max_tokens: 2048,
+        messages: [
+          { role: "system", content: sys },
+          ...(history ?? []).map((m: { role: string; content: string }) => ({ role: m.role === "kai" ? "assistant" : m.role, content: m.content })),
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      throw new Error(`groq ${r.status}: ${t.slice(0, 200)}`);
+    }
+    const j = await r.json();
+    const content = j.choices[0].message.content;
+    if (!content || !content.trim()) throw new Error("groq empty");
+    return content;
+  }
+
+  async function callGemini(): Promise<string> {
+    const fullPrompt = sys + "\n\n" + (history ?? []).map((m: { role: string; content: string }) => `${m.role === "kai" ? "K-AI" : "Usuário"}: ${m.content}`).join("\n") + `\nUsuário: ${prompt}`;
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI}`,
+      {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${GROQ}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "openai/gpt-oss-120b",
+          contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+      }
+    );
+    if (!r.ok) {
+      const t = await r.text();
+      throw new Error(`gemini ${r.status}: ${t.slice(0, 200)}`);
+    }
+    const j = await r.json();
+    const content = j.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!content || !content.trim()) throw new Error("gemini empty");
+    return content;
+  }
+
+  async function callPollinations(): Promise<string> {
+    try {
+      const r = await fetch("https://text.pollinations.ai/openai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "openai",
           messages: [
             { role: "system", content: sys },
             ...(history ?? []).map((m: { role: string; content: string }) => ({ role: m.role === "kai" ? "assistant" : m.role, content: m.content })),
             { role: "user", content: prompt },
           ],
+          stream: false,
         }),
       });
-      if (!r.ok) {
-        const t = await r.text();
-        throw new Error(`groq ${r.status}: ${t.slice(0, 200)}`);
-      }
+      if (!r.ok) throw new Error(`pollinations ${r.status}`);
       const j = await r.json();
-      return j.choices[0].message.content;
-    }
-
-    async function callGemini(): Promise<string> {
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: sys + "\n" + prompt }] }],
-          }),
-        }
-      );
-      if (!r.ok) {
-        const t = await r.text();
-        throw new Error(`gemini ${r.status}: ${t.slice(0, 200)}`);
-      }
-      const j = await r.json();
-      return j.candidates[0].content.parts[0].text;
-    }
-
-    async function callPollinations(): Promise<string> {
-      try {
-        const r = await fetch("https://text.pollinations.ai/openai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "openai",
-            messages: [
-              { role: "system", content: sys },
-              ...(history ?? []).map((m: { role: string; content: string }) => ({ role: m.role === "kai" ? "assistant" : m.role, content: m.content })),
-              { role: "user", content: prompt },
-            ],
-            stream: false,
-          }),
-        });
-        if (!r.ok) throw new Error(`pollinations ${r.status}`);
-        const j = await r.json();
-        const txt = j?.choices?.[0]?.message?.content;
-        if (txt) return txt;
-        throw new Error("pollinations vazio");
-      } catch {
-        // texto plano como segunda tentativa
-        const r2 = await fetch(`https://text.pollinations.ai/${encodeURIComponent(sys + " | Pergunta: " + prompt)}`);
-        if (!r2.ok) throw new Error(`pollinations-text ${r2.status}`);
-        const txt2 = await r2.text();
-        if (txt2 && txt2.length > 5) return txt2;
-        throw new Error("pollinations text vazio");
-      }
-    }
-
-    let answer: string;
-    let provider: string;
-    let auto_switched = false;
-
-    try {
-      if (provider_pref === "gemini") {
-        try {
-          answer = await callGemini();
-          provider = "gemini";
-        } catch {
-          answer = await callPollinations();
-          provider = "pollinations";
-          auto_switched = true;
-        }
-      } else if (provider_pref === "groq") {
-        try {
-          answer = await callGroq();
-          provider = "groq";
-        } catch {
-          try {
-            answer = await callGemini();
-            provider = "gemini";
-            auto_switched = true;
-          } catch {
-            answer = await callPollinations();
-            provider = "pollinations";
-            auto_switched = true;
-          }
-        }
-      } else {
-        // AUTO: Groq -> Gemini -> Pollinations
-        try {
-          answer = await callGroq();
-          provider = "groq";
-        } catch {
-          try {
-            answer = await callGemini();
-            provider = "gemini";
-            auto_switched = true;
-          } catch {
-            answer = await callPollinations();
-            provider = "pollinations";
-            auto_switched = true;
-          }
-        }
-      }
+      const txt = j?.choices?.[0]?.message?.content;
+      if (txt && txt.trim()) return txt;
+      throw new Error("pollinations vazio");
     } catch {
-      answer = "Sou K-AI v42 criada por @K-TP.p / sistemak, online aqui na CENTRAL KORVIL. Você é o ADM com Acesso Total. Todas as IAs externas falharam agora, mas estou aqui. Manda o que precisa que eu resolvo.";
-      provider = "local-fallback";
+      // texto plano como segunda tentativa
+      const r2 = await fetch(`https://text.pollinations.ai/${encodeURIComponent(sys + " | Pergunta: " + prompt)}`);
+      if (!r2.ok) throw new Error(`pollinations-text ${r2.status}`);
+      const txt2 = await r2.text();
+      if (txt2 && txt2.length > 5) return txt2;
+      throw new Error("pollinations text vazio");
     }
+  }
 
-    return new Response(
-      JSON.stringify({ provider, answer, auto_switched }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  // --- Smart provider routing ---
+  // AUTO mode: tries Groq (fastest) -> Gemini -> Pollinations (always free)
+  // Each provider gets a fair attempt. If one is down, the next picks up seamlessly.
+
+  let answer: string;
+  let provider: string;
+  let auto_switched = false;
+  const errors: string[] = [];
+
+  const tryProvider = async (name: string, fn: () => Promise<string>): Promise<boolean> => {
+    try {
+      answer = await fn();
+      provider = name;
+      return true;
+    } catch (e) {
+      errors.push(`${name}: ${e instanceof Error ? e.message : "unknown"}`);
+      return false;
+    }
+  };
+
+  try {
+    if (provider_pref === "gemini") {
+      if (await tryProvider("gemini", callGemini)) {
+        // success
+      } else if (await tryProvider("pollinations", callPollinations)) {
+        auto_switched = true;
+      } else if (await tryProvider("groq", callGroq)) {
+        auto_switched = true;
+      }
+    } else if (provider_pref === "groq") {
+      if (await tryProvider("groq", callGroq)) {
+        // success
+      } else if (await tryProvider("gemini", callGemini)) {
+        auto_switched = true;
+      } else if (await tryProvider("pollinations", callPollinations)) {
+        auto_switched = true;
+      }
+    } else if (provider_pref === "pollinations") {
+      if (await tryProvider("pollinations", callPollinations)) {
+        // success
+      } else if (await tryProvider("groq", callGroq)) {
+        auto_switched = true;
+      } else if (await tryProvider("gemini", callGemini)) {
+        auto_switched = true;
+      }
+    } else {
+      // AUTO: Groq (fastest) -> Gemini -> Pollinations (always available)
+      if (await tryProvider("groq", callGroq)) {
+        // success
+      } else if (await tryProvider("gemini", callGemini)) {
+        auto_switched = true;
+      } else if (await tryProvider("pollinations", callPollinations)) {
+        auto_switched = true;
+      }
+    }
+  } catch {
+    // all providers failed
+  }
+
+  // If no provider succeeded, use local fallback
+  if (!answer) {
+    answer = "Sou K-AI v42 criada por @K-TP.p / sistemak, online aqui na CENTRAL KORVIL. Você é o ADM com Acesso Total. Todas as IAs externas falharam agora, mas estou aqui. Manda o que precisa que eu resolvo.";
+    provider = "local-fallback";
+  }
+
+  return new Response(
+    JSON.stringify({ provider, answer, auto_switched, errors: errors.length > 0 ? errors : undefined }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
   } catch (e) {
     return new Response(
       JSON.stringify({ provider: "error", answer: "Erro ao processar.", auto_switched: false, error: e instanceof Error ? e.message : "unknown" }),

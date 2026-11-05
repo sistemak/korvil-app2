@@ -24,3 +24,6 @@ verify_jwt = false
 
 [functions.notificar-atividade]
 verify_jwt = false
+
+[functions.kai-evolve]
+verify_jwt = false

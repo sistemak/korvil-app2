@@ -48,30 +48,103 @@ self.addEventListener('push', (e) => {
   } catch (_) {
     data = { title: 'KORVIL App', body: e.data ? e.data.text() : '' };
   }
+
+  const notifOptions = {
+    body: data.body || '',
+    tag: data.tag,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url: data.url || '/', proposal_id: data.data?.proposal_id, type: data.data?.type },
+    requireInteraction: data.requireInteraction || false,
+  };
+
+  // K-AI evolution notifications get SIM/NÃO action buttons
+  if (data.data && data.data.type === 'kai-evolve' && data.actions) {
+    notifOptions.actions = data.actions;
+  }
+
   e.waitUntil(
-    self.registration.showNotification(data.title || 'KORVIL App', {
-      body: data.body || '',
-      tag: data.tag,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data: { url: data.url || '/' },
-    })
+    self.registration.showNotification(data.title || 'KORVIL App', notifOptions)
   );
 });
 
-// Notificações do K-AI: tocar na notificação abre o app na tela da tarefa.
+// Handle notification click + action buttons (SIM/NÃO from K-AI evolution)
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || '/';
-  e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      for (const c of list) {
-        if ('focus' in c) {
-          c.navigate(url);
-          return c.focus();
-        }
+  const nData = e.notification.data || {};
+  const proposalId = nData.proposal_id;
+  const isKaiEvolve = nData.type === 'kai-evolve';
+  const action = e.action; // 'sim', 'nao', or '' (normal click)
+
+  // If it's a K-AI evolution notification with an action button
+  if (isKaiEvolve && proposalId) {
+    const apiUrl = nData.api_url;
+
+    if (action === 'sim') {
+      // User approved — call kai-evolve to execute the proposal for real
+      e.waitUntil(
+        (apiUrl
+          ? fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'execute', proposal_id: proposalId }),
+            })
+          : Promise.reject(new Error('no api_url'))
+        ).then(() => {
+          return self.registration.showNotification('K-AI executando', {
+            body: 'Aprovado! Aplicando a mudança no app agora.',
+            tag: `kai-evolve-confirm-${proposalId}`,
+            icon: '/icons/icon-192.png',
+          });
+        }).catch(() => {
+          // Fallback: open the app so the user can approve there
+          return openApp(nData.url || '/');
+        })
+      );
+      return;
+    }
+
+    if (action === 'nao') {
+      // User rejected — tell the server, next cycle will suggest something different
+      if (apiUrl) {
+        e.waitUntil(
+          fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reject', proposal_id: proposalId }),
+          }).catch(() => {})
+        );
       }
-      return clients.openWindow(url);
-    })
-  );
+      // Show a small confirmation
+      e.waitUntil(
+        self.registration.showNotification('K-AI', {
+          body: 'Ok, vou sugerir outra coisa em 5 minutos.',
+          tag: `kai-evolve-reject-${proposalId}`,
+          icon: '/icons/icon-192.png',
+        })
+      );
+      return;
+    }
+
+    // Normal click on a K-AI evolution notification (no action button, e.g. iOS)
+    // Open the app where the user can approve/reject from the UI
+    e.waitUntil(openApp(nData.url || '/'));
+    return;
+  }
+
+  // Regular notification — open the app
+  const url = nData.url || '/';
+  e.waitUntil(openApp(url));
 });
+
+function openApp(url) {
+  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) {
+      if ('focus' in c) {
+        c.navigate(url);
+        return c.focus();
+      }
+    }
+    return clients.openWindow(url);
+  });
+}
