@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
 import { X, Trash2, MessageSquare, ShieldCheck, Menu, Sparkles, ListTodo, FlaskConical, CalendarClock, Settings, ChevronDown, Brain } from 'lucide-react';
 import KAIRightMenu, { type KaiTarget } from '@/components/KAIRightMenu';
 import KAITasksPanel from '@/components/KAITasksPanel';
@@ -10,7 +11,7 @@ import { publishPendingTasks } from '@/lib/kaiTasks';
 import { startAutomationScheduler, checkDue } from '@/lib/kaiAutomations';
 import BoltInputBox from '@/components/BoltInputBox';
 import { speak, stopSpeaking, WakeListener, playBip } from '@/lib/kaiVoice';
-import { buildReply, contextualWhisper, greeting, pickAddress, readyReply, setKaiUserName, setKaiCreatorMode, speechText } from '@/lib/kaiPersonality';
+import { buildReply, contextualWhisper, greeting, pickAddress, readyReply, setKaiUserName, setKaiCreatorMode, speechText, setKaiScreen } from '@/lib/kaiPersonality';
 import { isAdminEmail, isCreator, markAsCreator, runCreatorAction } from '@/lib/creatorMode';
 import { runUnlimited, executeCall, ensureUnlimitedReady, type PendingCall } from '@/lib/kaiUnlimited';
 import { pushFileToRepo, detectAppChange, applySimpleChange } from '@/lib/kaiExec';
@@ -22,6 +23,8 @@ import { enqueueTask } from '@/lib/kaiQueue';
 import { addHistory, snapshotBefore } from '@/lib/kaiHistory';
 import { saveOfflineOrder, startOfflineSync, countOfflineOrders } from '@/lib/kaiOffline';
 import { runDailyBackup } from '@/lib/kaiBackup';
+import { handleSlashCommand } from '@/lib/kaiCommands';
+import { getPendingProposal } from '@/lib/kaiEvolution';
 import { getSessionUser, getMyProfile, displayName } from '@/lib/korvilAuth';
 import { checkPermission, PRIVATE_BLOCK_MESSAGE } from '@/lib/kaiSecurity';
 import KaiMessage from '@/components/KaiMessage';
@@ -101,6 +104,10 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
   const [labOpen, setLabOpen] = useState(false);
   const [keditorOpen, setKeditorOpen] = useState(false);
   const [evolutionOpen, setEvolutionOpen] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [pendingProposalCount, setPendingProposalCount] = useState(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>(loadHistory);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -285,13 +292,37 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
 
   const respond = useCallback(
     (text: string, talk: boolean) => {
-      const { text: reply } = buildReply(text);
-      appendMessages(text, reply);
-      if (talk) speak(speechText(reply));
-      else pushWhisper(reply);
+      const result = buildReply(text);
+      if (result.isCommand) return; // comandos slash são tratados no handleCommand
+      appendMessages(text, result.text);
+      if (talk) speak(speechText(result.text));
+      else pushWhisper(result.text);
     },
     [appendMessages, pushWhisper]
   );
+
+  // Auto-scroll para a última mensagem sempre que chega uma nova.
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [activeSession?.messages.length, typing]);
+
+  // Verifica propostas pendentes de evolução a cada 30s e mostra badge no botão.
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      try {
+        const p = await getPendingProposal();
+        setPendingProposalCount(p ? 1 : 0);
+      } catch {
+        setPendingProposalCount(0);
+      }
+    };
+    void check();
+    const id = setInterval(() => void check(), 30_000);
+    return () => clearInterval(id);
+  }, [user]);
 
   // Executa pedido de mudança confirmado (voz ou botão de confirmação do chat).
   const executeChange = useCallback(
@@ -324,6 +355,28 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
   // Trata um pedido: cérebro (IA real) primeiro; modo simples como reserva.
   const handleCommand = useCallback(
     (text: string, talk: boolean) => {
+      // Comandos slash — executam direto, sem gastar IA.
+      if (text.trim().startsWith('/')) {
+        const cmdResult = handleSlashCommand(text, {
+          clearChat: () => {
+            if (activeId !== null) {
+              setSessions((prev) => prev.map((s) => s.id === activeId ? { ...s, messages: [], updatedAt: Date.now() } : s));
+            } else {
+              setActiveId(Date.now());
+            }
+          },
+          openTasks: () => setTasksOpen(true),
+          openEvolution: () => setEvolutionOpen(true),
+          openProgramacoes: () => setProgramacoesOpen(true),
+        });
+        if (cmdResult?.handled) {
+          appendMessages(text, cmdResult.reply);
+          if (talk) speak(speechText(cmdResult.reply));
+          if (cmdResult.action) void cmdResult.action();
+          return;
+        }
+      }
+
       // Bloqueio de info privada — vale pra todo mundo (ADM inclusive).
       const perm = checkPermission(text, user?.email);
       if (!perm.allowed && perm.blockMessage) {
@@ -395,6 +448,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
       };
 
       const askBrain = () => {
+        setTyping(true);
         const history = [
           ...(activeSession?.messages.slice(-8) ?? []),
           { role: 'user' as const, text },
@@ -407,6 +461,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
 
         askKorvilAI(text, { setor: 'central', history: korvilHistory, provider: getProvider(), email: user?.email, isADM: isAdm }).then((kr) => {
           if (kr.ok && kr.reply && kr.provider !== 'error') {
+            setTyping(false);
             appendMessages(text, kr.reply);
             if (talk) speak(speechText(kr.reply));
             else pushWhisper(kr.reply);
@@ -420,6 +475,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
             // Reforço híbrido: Pollinations (OpenAI -> Mistral -> Text) -> fallback local.
             askHybridAI(text, korvilHistory).then((hr) => {
               if (hr.ok && hr.reply) {
+                setTyping(false);
                 appendMessages(text, hr.reply);
                 if (talk) speak(speechText(hr.reply));
                 else pushWhisper(hr.reply);
@@ -429,6 +485,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
             });
             return;
           }
+          setTyping(false);
           appendMessages(text, r.reply);
           if (talk) speak(speechText(r.reply));
           else pushWhisper(r.reply);
@@ -780,8 +837,8 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[160px]">
-            {(!activeSession || activeSession.messages.length === 0) && (
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[160px]">
+            {(!activeSession || activeSession.messages.length === 0) && !typing && (
               <div id="caixa-kai" style={{ display: 'none' }}>
                 {CAIXA_HINTS.map((h, i) => (
                   <p key={i} style={{ margin: '4px 0' }}>{h}</p>
@@ -797,6 +854,17 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
                 onEdit={m.role === 'user' ? editMessage : undefined}
               />
             ))}
+            {typing && (
+              <div className="flex items-center gap-2 px-1 py-1.5">
+                <div className="w-7 h-7 rounded-full bg-cyan-500/15 flex items-center justify-center shrink-0">
+                  <Loader2 size={14} className="text-cyan-400 animate-spin" />
+                </div>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-tl-sm px-3 py-2">
+                  <span className="text-zinc-400 text-xs italic">K-AI está pensando...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           <BoltInputBox onSend={(text) => handleCommand(text, true)} draft={editDraft} onDraftConsumed={() => setEditDraft(null)} />
@@ -955,6 +1023,18 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
             }}
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', background: 'transparent', borderRadius: '50%', display: 'block', transform: 'scale(1.15)' }}
           />
+          {pendingProposalCount > 0 && (
+            <div
+              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-amber-500 border-2 border-black flex items-center justify-center animate-pulse z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEvolutionOpen(true);
+              }}
+              title="K-AI tem uma proposta de evolução aguardando"
+            >
+              <Brain size={11} className="text-black" />
+            </div>
+          )}
         </div>
       </div>
     </>
