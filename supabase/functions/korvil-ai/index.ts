@@ -189,3 +189,4 @@ Se o usuário perguntar sobre produtos da loja, preços, frete, cupons, formas d
     );
   }
 });
+// redeploy trigger Sun Nov  8 03:14:51 UTC 2026

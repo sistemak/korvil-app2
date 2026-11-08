@@ -17,9 +17,17 @@
       "hasChanged": false,
       "hash": "81ae08bdffa62531994acfa2b19797f6aa7120fab742119ac29f24a7c93edff9"
     },
+    "kai-evolve": {
+      "hasChanged": false,
+      "hash": "9e1162b4dd0112e5bf61014691e322da6413d9529fd26b47e44cd5319e40b75a"
+    },
     "korvil-ai": {
       "hasChanged": false,
-      "hash": "a3cbc2738ddefd0de1848bd87a0871994e2d15ad07e13ef8d1461a608f691e9f"
+      "hash": "b2a9e3f829c8faf7701f25fa2b09458751ae4df41249df90087cbfca3f20aa79"
+    },
+    "notificar-atividade": {
+      "hasChanged": false,
+      "hash": "f77298bd97097cee846dda2421feeb4305f609540bdd3def39b724f75c8fe914"
     },
     "send-transformacao-whatsapp": {
       "hasChanged": false,
@@ -36,10 +44,6 @@
     "transformacao-identidade": {
       "hasChanged": false,
       "hash": "897c539c82122e67f88f83678734839bdec1f2a39d9d2feeb65d93e56b16711f"
-    },
-    "notificar-atividade": {
-      "hasChanged": false,
-      "hash": "f77298bd97097cee846dda2421feeb4305f609540bdd3def39b724f75c8fe914"
     }
   }
 }
