@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import {
   Sparkles, HandHeart, Bone, Smile, Scissors, Flower2, BookOpen, GraduationCap,
   Wallet, TrendingUp, Sheet, Dumbbell, Watch, Shirt, Pill, Apple, Shield,
@@ -83,20 +83,21 @@ export function SectionView({ sectionId, onBack }: { sectionId: string; onBack: 
             <span className="w-1 h-5 rounded-full" style={{ backgroundColor: section.color }} />
             {cat.title}
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <AutoCarousel>
             {cat.items.map((item) => (
-              <ItemCard
-                key={item.name}
-                item={item}
-                color={section.color}
-                onClick={
-                  sectionId === 'ktp' && item.name === 'Projeto TRANSFORMAÇÃO'
-                    ? () => setProjetoAberto(true)
-                    : undefined
-                }
-              />
+              <div key={item.name} className="snap-start shrink-0 w-[280px] sm:w-[340px]">
+                <ItemCard
+                  item={item}
+                  color={section.color}
+                  onClick={
+                    sectionId === 'ktp' && item.name === 'Projeto TRANSFORMAÇÃO'
+                      ? () => setProjetoAberto(true)
+                      : undefined
+                  }
+                />
+              </div>
             ))}
-          </div>
+          </AutoCarousel>
         </div>
       ))}
 
@@ -112,23 +113,101 @@ export function SectionView({ sectionId, onBack }: { sectionId: string; onBack: 
   );
 }
 
+/* Carrossel horizontal com rolagem automática a cada 5 segundos.
+   Quando o usuário mexe manualmente (arrasta, scroll ou touch),
+   a rolagem automática pausa por 7 segundos e depois volta sozinha. */
+function AutoCarousel({ children }: { children: React.ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pausedRef = useRef(false);
+  const directionRef = useRef<1 | -1>(1);
+
+  const startAuto = () => {
+    stopAuto();
+    autoRef.current = setInterval(() => {
+      if (pausedRef.current) return;
+      const el = scrollRef.current;
+      if (!el) return;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return;
+
+      let next = el.scrollLeft + directionRef.current * el.clientWidth * 0.8;
+      if (next >= maxScroll) {
+        next = maxScroll;
+        directionRef.current = -1;
+      } else if (next <= 0) {
+        next = 0;
+        directionRef.current = 1;
+      }
+      el.scrollTo({ left: next, behavior: 'smooth' });
+    }, 5000);
+  };
+
+  const stopAuto = () => {
+    if (autoRef.current) {
+      clearInterval(autoRef.current);
+      autoRef.current = null;
+    }
+  };
+
+  const pauseAuto = () => {
+    pausedRef.current = true;
+    if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+    pauseTimerRef.current = setTimeout(() => {
+      pausedRef.current = false;
+    }, 7000);
+  };
+
+  useEffect(() => {
+    startAuto();
+    return () => {
+      stopAuto();
+      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div
+      ref={scrollRef}
+      className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 -mx-1 px-1"
+      style={{ scrollbarWidth: 'thin', scrollbarColor: '#444 transparent' }}
+      onScroll={pauseAuto}
+      onWheel={pauseAuto}
+      onTouchStart={pauseAuto}
+      onTouchMove={pauseAuto}
+      onPointerDown={pauseAuto}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function CentralDashboard({ onNavigate, onOpenLoja, onOpenOmfome, onOpenCursos }: { onNavigate: (id: string) => void; onOpenLoja?: () => void; onOpenOmfome?: () => void; onOpenCursos?: () => void }) {
+  const extensaoLogos: Record<string, string> = {
+    'K.L / KORVIL Loja': '/assets/korvil-loja.svg',
+    'K-OMFOME Delivery': '/assets/korvil-omfome.svg',
+  };
+  const extensaoClick: Record<string, (() => void) | undefined> = {
+    'K.L / KORVIL Loja': onOpenLoja,
+    'K-OMFOME Delivery': onOpenOmfome,
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
-      {/* CENTRAL KORVIL */}
       <h3 className="text-white font-bold text-lg mb-3">CENTRAL KORVIL</h3>
 
-      {/* SERVIÇOS — 4 cards com logos circulares fundo completo */}
       <h3 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
         <span className="w-1 h-5 rounded-full bg-violet-500" />
         SERVIÇOS
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+      <AutoCarousel>
         {SECTIONS.map((s) => (
           <button
             key={s.id}
             onClick={() => onNavigate(s.id)}
-            className="group bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-all"
+            className="group snap-start shrink-0 w-[160px] sm:w-[180px] bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-all"
           >
             <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-zinc-100 ring-1 ring-zinc-700 group-hover:ring-2 transition" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
               <img
@@ -142,28 +221,25 @@ export function CentralDashboard({ onNavigate, onOpenLoja, onOpenOmfome, onOpenC
             <span className="text-zinc-500 text-[10px] text-center leading-tight">{s.tagline}</span>
           </button>
         ))}
-      </div>
+      </AutoCarousel>
 
       {/* Central content */}
       {CENTRAL_KORVIL.categories.map((cat) => (
-        <div key={cat.title} className="mb-8">
+        <div key={cat.title} className="mb-8 mt-8">
           <h3 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-violet-500" />
             {cat.title}
           </h3>
           {cat.title === 'Extensões' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AutoCarousel>
               {cat.items.map((item) => {
-                const logo = item.name === 'K.L / KORVIL Loja' ? '/assets/korvil-loja.svg' : '/assets/korvil-omfome.svg';
-                const onClick =
-                  item.name === 'K.L / KORVIL Loja' && onOpenLoja ? onOpenLoja
-                  : item.name === 'K-OMFOME Delivery' && onOpenOmfome ? onOpenOmfome
-                  : undefined;
+                const logo = extensaoLogos[item.name] ?? '/logokai.png';
+                const onClick = extensaoClick[item.name];
                 return (
                   <button
                     key={item.name}
                     onClick={onClick}
-                    className="group bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 text-left hover:border-zinc-600 transition-all hover:bg-zinc-800/60 flex items-center gap-3 w-full"
+                    className="group snap-start shrink-0 w-[280px] sm:w-[340px] bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 text-left hover:border-zinc-600 transition-all hover:bg-zinc-800/60 flex items-center gap-3"
                   >
                     <div className="w-20 h-20 rounded-full overflow-hidden shrink-0 ring-1 ring-violet-500/40 group-hover:ring-2 group-hover:ring-violet-400 transition" style={{ boxShadow: '0 2px 12px rgba(168,85,247,0.3)' }}>
                       <img src={logo} alt={item.name} className="w-full h-full object-cover" onError={(e) => ((e.target as HTMLImageElement).src = '/logokai.png')} />
@@ -176,23 +252,24 @@ export function CentralDashboard({ onNavigate, onOpenLoja, onOpenOmfome, onOpenC
                   </button>
                 );
               })}
-            </div>
+            </AutoCarousel>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AutoCarousel>
               {cat.items.map((item) => (
-                <ItemCard
-                  key={item.name}
-                  item={item}
-                  color={CENTRAL_KORVIL.color}
-                  onClick={
-                    item.name === 'Cursos' && onOpenCursos ? onOpenCursos
-                    : item.name === 'K.L / KORVIL Loja' && onOpenLoja ? onOpenLoja
-                    : item.name === 'K-OMFOME Delivery' && onOpenOmfome ? onOpenOmfome
-                    : undefined
-                  }
-                />
+                <div key={item.name} className="snap-start shrink-0 w-[280px] sm:w-[340px]">
+                  <ItemCard
+                    item={item}
+                    color={CENTRAL_KORVIL.color}
+                    onClick={
+                      item.name === 'Cursos' && onOpenCursos ? onOpenCursos
+                      : item.name === 'K.L / KORVIL Loja' && onOpenLoja ? onOpenLoja
+                      : item.name === 'K-OMFOME Delivery' && onOpenOmfome ? onOpenOmfome
+                      : undefined
+                    }
+                  />
+                </div>
               ))}
-            </div>
+            </AutoCarousel>
           )}
         </div>
       ))}
