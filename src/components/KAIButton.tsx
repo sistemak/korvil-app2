@@ -128,6 +128,21 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
   const highlightTaskIdRef = useRef<string | null>(null);
   const btnRef = useRef<HTMLDivElement>(null);
 
+  // Bloqueio nativo forte: impede a caixa do celular antes do navegador abrir.
+  useEffect(() => {
+    const el = btnRef.current;
+    if (!el) return;
+    const block = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+    el.addEventListener('contextmenu', block, { capture: true });
+    return () => {
+      el.removeEventListener('contextmenu', block, { capture: true });
+    };
+  }, []);
+
   const activeSession = sessions.find((s) => s.id === activeId) ?? null;
 
   // Grava a troca de mensagens na conversa atual (ou cria uma nova).
@@ -1004,26 +1019,32 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
                 : 'kaiPulse 2s ease-in-out infinite',
           }}
         >
-          <video
-            src="/kai/kai-small.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            controls={false}
-            disablePictureInPicture
-            controlsList="nodownload noplaybackrate noremoteplayback"
-            draggable={false}
-            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); return false; }}
-            onTouchStart={(e) => e.preventDefault()}
-            onTouchEnd={(e) => e.preventDefault()}
-            ref={(el) => {
-              if (el) {
-                el.muted = true;
-              }
-            }}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', background: 'transparent', borderRadius: '50%', display: 'block', transform: 'scale(1.15)', pointerEvents: 'none', WebkitTouchCallout: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
-          />
+          <div className="relative w-full h-full">
+            <video
+              src="/kai/kai-small.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls={false}
+              disablePictureInPicture
+              controlsList="nodownload noplaybackrate noremoteplayback"
+              draggable={false}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); return false; }}
+              ref={(el) => {
+                if (el) {
+                  el.muted = true;
+                }
+              }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', background: 'transparent', borderRadius: '50%', display: 'block', transform: 'scale(1.15)', pointerEvents: 'none', WebkitTouchCallout: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
+            />
+            {/* escudo: o toque nunca chega no vídeo, então o celular não abre a caixa */}
+            <div
+              className="absolute inset-0 z-20 rounded-full"
+              style={{ touchAction: 'none', WebkitTouchCallout: 'none', userSelect: 'none', background: 'transparent' }}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); return false; }}
+            />
+          </div>
           {pendingProposalCount > 0 && (
             <div
               className="absolute top-2 right-2 w-5 h-5 rounded-full bg-amber-500 border-2 border-black flex items-center justify-center animate-pulse z-10"
