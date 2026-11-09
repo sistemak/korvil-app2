@@ -965,6 +965,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
 
       <div
         ref={btnRef}
+        onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); return false; }}
         onMouseDown={(e) => handlePressStart(e.clientX, e.clientY)}
         onMouseMove={(e) => handlePressMove(e.clientX, e.clientY)}
         onMouseUp={handlePressEnd}
@@ -987,7 +988,7 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
           }
         }}
         className="fixed z-[88] select-none"
-        style={{ left: pos.x, top: pos.y, touchAction: 'none', display: modalOpen ? 'none' : undefined }}
+        style={{ left: pos.x, top: pos.y, touchAction: 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', display: modalOpen ? 'none' : undefined }}
       >
         <div
           className={`k-ai-circle relative w-[160px] h-[160px] rounded-full flex items-center justify-center cursor-pointer overflow-hidden transition-transform ${
@@ -1007,21 +1008,21 @@ export default function KAIButton({ onNavigateSection, onOpenLoja }: Props) {
             src="/kai/kai-small.mp4"
             autoPlay
             loop
+            muted
             playsInline
             controls={false}
+            disablePictureInPicture
+            controlsList="nodownload noplaybackrate noremoteplayback"
+            draggable={false}
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); return false; }}
+            onTouchStart={(e) => e.preventDefault()}
+            onTouchEnd={(e) => e.preventDefault()}
             ref={(el) => {
               if (el) {
                 el.muted = true;
-                el.volume = 1.0;
               }
             }}
-            onClick={(e) => {
-              const v = e.currentTarget;
-              v.muted = false;
-              v.volume = 1.0;
-              void v.play();
-            }}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', background: 'transparent', borderRadius: '50%', display: 'block', transform: 'scale(1.15)' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', background: 'transparent', borderRadius: '50%', display: 'block', transform: 'scale(1.15)', pointerEvents: 'none', WebkitTouchCallout: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
           />
           {pendingProposalCount > 0 && (
             <div
