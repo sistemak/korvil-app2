@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KORVIL DRAG</title>
+<style>
+*{box-sizing:border-box} body{font-family:sans-serif;margin:0;padding:16px;background:#f8fafc;color:#111}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:12px}
+h2{margin:0 0 8px} small{color:#64748b}
+input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:8px 0}
+button{padding:12px 16px;border:0;border-radius:99px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer}
+button.sec{background:#0f172a} button.warn{background:#dc2626}
+#drop{border:3px dashed #16a34a;border-radius:16px;padding:36px 12px;text-align:center;background:#f0fdf4;font-weight:700}
+#drop.over{background:#dcfce7}
+#log{white-space:pre-wrap;font-size:13px;background:#0f172a;color:#a7f3d0;padding:12px;border-radius:12px;min-height:60px}
+.file{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;gap:8px}
+.file b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>● KORVIL DRAG</h2>
+<small>Isolado do app Bolt. Só mexe no repo via API. Nada do projeto é alterado.</small>
+<input id="token" type="password" placeholder="Cole seu GH_TOKEN Fine-grained (Contents: Read and write, só korvil-app2)">
+<input id="pasta" placeholder="Pasta de destino padrão. Ex: korvil/sections/ktp/">
+<button onclick="ativar()">ATIVAR</button>
+<button class="sec" onclick="listar('')">Ver arquivos do repo</button>
+<button class="warn" onclick="sair()">Sair / apagar token</button>
+<div id="status">Status: aguardando token</div>
+</div>
+
+<div class="card">
+<div id="drop">Arraste pasta / arquivo aqui pra SUBIR pro korvil-app2<br><small>Sem duplicar. Se já existir igual, ele pula.</small></div>
+<input type="file" id="pick" multiple onchange="subirArquivos(this.files)">
+<label><small>Ou clique aqui para escolher do celular</small></label>
+</div>
+
+<div class="card">
+<h3>Arquivos do repo - clique pra BAIXAR pro celular</h3>
+<input id="busca" placeholder="Filtrar pasta. Ex: korvil/" oninput="listar(this.value)">
+<div id="lista"><small>Ative e clique em Ver arquivos</small></div>
+</div>
+
+<div class="card"><div id="log">Log...</div></div>
+
+<script>
+const OWNER='sistemak', REPO='korvil-app2', BRANCH='main';
+let token = sessionStorage.getItem('korvil_token') || '';
+if(token) document.getElementById('token').value = token;
+
+function log(m){ document.getElementById('log').textContent = m + '\n' + document.getElementById('log').textContent; }
+function headers(){ return {Authorization:'Bearer '+token, 'Content-Type':'application/json', Accept:'application/vnd.github+json'}; }
+
+function ativar(){
+  token = document.getElementById('token').value.trim();
+  if(!token) return alert('Cola o token primeiro');
+  sessionStorage.setItem('korvil_token', token);
+  document.getElementById('status').textContent = 'Status: ● ATIVO - pode arrastar';
+  log('ATIVO. Token só na memória, some ao fechar a aba.');
+  listar(document.getElementById('busca').value || '');
+}
+function sair(){
+  token=''; sessionStorage.removeItem('korvil_token');
+  document.getElementById('token').value='';
+  document.getElementById('status').textContent='Status: saiu';
+  log('Token apagado da memória.');
+}
+function b64(f){ return new Promise(r=>{let fr=new FileReader(); fr.onload=()=>r(fr.result.split(',')[1]); fr.readAsDataURL(f); }); }
+
+async function subirArquivos(files){
+  if(!token) return alert('Ative o token primeiro');
+  for(let f of files){
+    let pasta = document.getElementById('pasta').value.trim();
+    if(!pasta) pasta = prompt('Pasta no repo? Ex: korvil/sections/ktp/','') || '';
+    if(pasta && !pasta.endsWith('/')) pasta += '/';
+    let caminho = pasta + f.name;
+    let api = 'https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+encodeURIComponent(caminho).replace(/%2F/g,'/');
+    log('Verificando: '+caminho);
+    let ex = await fetch(api,{headers:{Authorization:'Bearer '+token}}).then(r=>r.ok?r.json():null).catch(()=>null);
+    // Não duplica: se já existe, compara tamanho e pula
+    if(ex && ex.size === f.size){ log('Já existe igual, não duplicou: '+f.name); alert('Já existe, não duplicou: '+f.name); continue; }
+    let content = await b64(f);
+    let body = {message:'upload via Korvil Drag: '+f.name, content:content, branch:BRANCH};
+    if(ex) body.sha = ex.sha; // se existir diferente, atualiza, não cria duplicata
+    let up = await fetch(api,{method:'PUT',headers:headers(),body:JSON.stringify(body)});
+    if(up.ok){ log('Subiu: '+caminho); alert('Subiu: '+f.name); }
+    else { let e=await up.text(); log('Erro '+f.name+': '+e); alert('Erro ao subir: '+f.name); }
+  }
+  listar(document.getElementById('busca').value || '');
+}
+
+async function listar(path){
+  if(!token) return;
+  let p = (path||'').replace(/^\/+/,'');
+  let api = 'https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+encodeURIComponent(p).replace(/%2F/g,'/')+'?ref='+BRANCH;
+  let res = await fetch(api,{headers:{Authorization:'Bearer '+token}});
+  let lista = document.getElementById('lista');
+  if(!res.ok){ lista.innerHTML='Erro ao listar. Verifique token e pasta.'; return; }
+  let items = await res.json();
+  if(!Array.isArray(items)){ lista.innerHTML='É um arquivo. <a href="'+items.download_url+'" target="_blank">Baixar</a>'; return; }
+  lista.innerHTML = '';
+  if(p){ let up = p.split('/').slice(0,-1).join('/'); let b=document.createElement('button'); b.textContent='⬆ Voltar'; b.onclick=()=>{document.getElementById('busca').value=up; listar(up)}; lista.appendChild(b); }
+  items.forEach(it=>{
+    let d=document.createElement('div'); d.className='file';
+    d.innerHTML = '<b>'+(it.type==='dir'?'📁 ':'📄 ')+it.name+'</b>';
+    let btn=document.createElement('button'); btn.className='sec';
+    if(it.type==='dir'){ btn.textContent='Abrir'; btn.onclick=()=>{document.getElementById('busca').value=it.path; listar(it.path)}; }
+    else { btn.textContent='Baixar'; btn.onclick=()=>{ let a=document.createElement('a'); a.href=it.download_url; a.download=it.name; a.target='_blank'; a.click(); }; }
+    d.appendChild(btn); lista.appendChild(d);
+  });
+  if(!items.length) lista.innerHTML='Pasta vazia';
+}
+
+// Drag & Drop
+let drop=document.getElementById('drop');
+drop.ondragover=e=>{e.preventDefault(); drop.classList.add('over')};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault(); drop.classList.remove('over'); subirArquivos(e.dataTransfer.files)};
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>e.preventDefault());
+</script>
+</body>
+</html>
