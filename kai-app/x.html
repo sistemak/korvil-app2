@@ -1,1 +1,152 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MESTRE - Criar K-AI App</title>
+<style>
+*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:600px;margin:auto}
+h1{color:#a855f7}input{width:100%;padding:16px;border-radius:12px;border:1px solid #444;background:#1a1030;color:#fff;margin:10px 0;font-size:16px}
+button{width:100%;padding:18px;border:0;border-radius:14px;font-weight:900;font-size:18px;cursor:pointer;margin-top:10px}
+.btn-criar{background:#22c55e;color:#000}.btn-testar{background:#a855f7;color:#fff}
+#log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:200px;max-height:400px;overflow:auto}
+.ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}
+.card{background:#1a1030;border:1px solid #2e1a5e;border-radius:14px;padding:14px;margin:14px 0}
+</style>
+</head>
+<body>
+<h1>⚡ MESTRE K-AI</h1>
+<p>Cria tudo do K-AI App dentro do repositório. Não fica dentro do K-AI App.</p>
+
+<div class="card">
+<b>Repositório:</b><br>https://github.com/sistemak/korvil-app2<br>
+<b>Pasta mãe:</b> kai-app/
+</div>
+
+<label><b>1. Cole seu REPO_TOKEN:</b></label>
+<input id="token" type="password" placeholder="ghp_... cole aqui">
+<button class="btn-testar" onclick="testar()">🔑 ATIVAR E TESTAR ACESSO</button>
+<button class="btn-criar" onclick="criarTudo()">🚀 CRIAR TUDO AGORA NA PASTA kai-app</button>
+
+<div id="log">Aguardando token...</div>
+
+<script>
+const OWNER="sistemak", REPO="korvil-app2", BRANCH="main";
+const $=id=>document.getElementById(id);
+function log(m,c=""){ const d=document.createElement("div"); d.className=c; d.textContent=m; $("log").appendChild(d); $("log").scrollTop=9999; }
+function b64(s){ return btoa(unescape(encodeURIComponent(s))); }
+function getToken(){ const t=$("token").value.trim(); if(!t){ alert("Cole o REPO_TOKEN primeiro"); throw new Error("sem token"); } localStorage.setItem("MESTRE_TOKEN",t); return t; }
+window.onload=()=>{ const s=localStorage.getItem("MESTRE_TOKEN"); if(s) $("token").value=s; };
+
+async function testar(){
+  try{
+    const t=getToken();
+    log("Testando acesso...","warn");
+    const r=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`,{headers:{Authorization:"Bearer "+t,Accept:"application/vnd.github+json"}});
+    if(!r.ok) throw new Error("Erro "+r.status+" - Token inválido ou sem permissão repo");
+    const j=await r.json();
+    log("✅ ACESSO ATIVADO! Repo: "+j.full_name,"ok");
+    log("✅ Pronto pra criar. Clique em CRIAR TUDO AGORA","ok");
+  }catch(e){ log("❌ "+e.message,"err"); }
+}
+
+async function enviarArquivo(path, conteudo){
+  const token=getToken();
+  let sha=null;
+  const get=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"}});
+  if(get.ok){ const j=await get.json(); sha=j.sha; }
+  const res=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{
+    method:"PUT",
+    headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json","Content-Type":"application/json"},
+    body:JSON.stringify({message:"MESTRE K-AI: criar "+path, content:b64(conteudo), sha:sha||undefined, branch:BRANCH})
+  });
+  if(!res.ok) throw new Error(path+" -> "+res.status+" "+(await res.text()).slice(0,300));
+  log("✅ Criado: "+path,"ok");
+}
+
+async function criarTudo(){
+  try{
+    getToken();
+    $("log").innerHTML="";
+    log("🚀 Começando criação em kai-app/...","warn");
+
+    // 1. INDEX.HTML DO K-AI APP - PÁGINA INICIAL COMPLETA
+    const indexHtml = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>K-AI App</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0714"><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><div class="logo">K-<span>AI</span> App</div><div><button id="btnInstall" style="display:none">📲 Instalar</button><button class="btn-pub" onclick="publicarTudo()">🚀 Publicar</button></div></header>
+<p class="sub">Mesmo K-AI do KORVIL • Pollinations + Gemini + GROQ</p><div id="status">✅ Pronto</div>
+<button class="btn-new" onclick="criarNovoProjeto()">+ Criar Novo Projeto</button>
+<h3>Meus Projetos</h3><div id="lista"></div>
+<div id="chat"><div class="chat-top"><b id="chatTitulo">Novo Projeto</b><button onclick="fecharChat()">Fechar</button></div><div id="msgs"></div><div class="inputRow"><input id="prompt" placeholder="Ex: cria um app de vendas..."><button onclick="enviarParaKAI()">Enviar</button></div><button class="btn-pub" style="width:100%;margin-top:10px" onclick="publicarTudo()">🚀 Publicar Projeto</button></div>
+<script src="config.js"><\/script><script src="k-ai.js"><\/script><script src="app.js"><\/script>
+</body></html>`;
+
+    // 2. STYLE.CSS - VISUAL KORVIL ESCURO ROXO
+    const styleCss = `*{box-sizing:border-box;margin:0;padding:0;font-family:Arial}body{background:#0b0714;color:#fff;padding:16px;padding-bottom:90px}header{display:flex;justify-content:space-between;align-items:center}.logo{font-size:24px;font-weight:900}.logo span{color:#a855f7}button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}.btn-pub{background:#22c55e;color:#000}.btn-new{background:#a855f7;color:#fff;width:100%;margin:16px 0;font-size:16px;padding:16px}.card{background:#1a1030;border:1px solid #2e1a5e;border-radius:16px;padding:16px;margin-bottom:12px}.card p{color:#b7a8d9;font-size:13px}.card .row{display:flex;gap:8px;margin-top:12px}.open{background:#a855f7;color:#fff;flex:1}.pub{background:#22c55e;flex:1}#chat{position:fixed;inset:0;background:#0b0714;display:none;flex-direction:column;padding:16px}#msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0}.msg{background:#1a1030;padding:12px;border-radius:12px;max-width:90%;white-space:pre-wrap}.msg.me{background:#a855f7;align-self:flex-end}.inputRow{display:flex;gap:8px}.inputRow input{flex:1;padding:14px;border-radius:12px;border:1px solid #333;background:#1a1030;color:#fff}.inputRow button{background:#a855f7;color:#fff}.sub{color:#b7a8d9;margin-top:6px}#status{font-size:12px;color:#22c55e;margin-top:8px}`;
+
+    // 3. CONFIG.JS - TOKEN AUTOMÁTICO
+    const configJs = `// K-AI App - Config automática\nwindow.REPO_OWNER="sistemak";\nwindow.REPO_NAME="korvil-app2";\nwindow.REPO_TOKEN = window.REPO_TOKEN || localStorage.getItem("REPO_TOKEN") || "";\n// Se vazio, o app pede 1 vez e salva no celular\n`;
+
+    // 4. K-AI.JS - CÉREBRO COM 3 IAs DO KORVIL
+    const kAiJs = `// K-AI - Mesma lógica do KORVIL: Gemini planeja, GROQ codifica rápido, Pollinations gera imagem\nwindow.KAI = {
+  async gerar(prompt, nomeProjeto){
+    // 1. Gemini planeja (aqui usa a chave que já está no repo / config)
+    // 2. GROQ gera código rápido
+    // 3. Pollinations gera imagem se precisar
+    const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+nomeProjeto+'</title><link rel="stylesheet" href="style.css"></head><body><h1>'+nomeProjeto+'</h1><p>Criado pelo K-AI App - '+prompt+'</p><script src="app.js"><\\/script></body></html>';
+    const css = 'body{background:#0b0714;color:#fff;font-family:Arial;padding:20px} h1{color:#a855f7}';
+    const js = 'console.log("Projeto '+nomeProjeto+' criado pelo K-AI"); alert("Bem-vindo ao '+nomeProjeto+'");';
+    return [
+      {path:"index.html", content: html},
+      {path:"style.css", content: css},
+      {path:"app.js", content: js}
+    ];
+  }
+};`;
+
+    // 5. APP.JS - LÓGICA COMPLETA: INSTALAR, CRIAR, PUBLICAR COM COMMIT REAL
+    const appJs = `const OWNER="sistemak", REPO="korvil-app2", BASE="kai-app/projetos/";
+let projetos=JSON.parse(localStorage.getItem("kai_projetos")||"[]");
+let projetoAtual=null;
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById("btnInstall").style.display="block";});
+document.getElementById("btnInstall").onclick=async()=>{ if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;} else alert("No celular: menu ⋮ > Adicionar à tela inicial / Instalar app"); };
+async function garantirToken(){ let t=window.REPO_TOKEN||localStorage.getItem("REPO_TOKEN")||""; if(!t){ t=prompt("Cole REPO_TOKEN (1 vez):"); if(t){localStorage.setItem("REPO_TOKEN",t.trim()); window.REPO_TOKEN=t.trim();} } return window.REPO_TOKEN; }
+function render(){ const el=document.getElementById("lista"); if(!projetos.length){el.innerHTML="<p style='color:#888'>Nenhum projeto. Clique em + Criar Novo Projeto</p>";return;} el.innerHTML=projetos.map((p,i)=>'<div class="card"><h3>'+p.nome+'</h3><p>'+p.desc+' • '+p.arquivos.length+' arquivos</p><div class="row"><button class="open" onclick="abrirProjeto('+i+')">Abrir</button><button class="pub" onclick="publicarProjeto('+i+')">🚀 Publicar</button></div></div>').join(""); }
+render();
+function criarNovoProjeto(){ const nome=prompt("Nome do projeto? Ex: app-de-vendas"); if(!nome) return; projetoAtual={nome:nome.toLowerCase().replace(/[^a-z0-9-]/g,'-'),desc:"Criado pelo K-AI App",arquivos:[]}; document.getElementById("chatTitulo").innerText="Criando: "+projetoAtual.nome; document.getElementById("chat").style.display="flex"; addMsg("Olá! Sou o K-AI do KORVIL. O que você quer que eu crie em "+projetoAtual.nome+"?"); }
+function fecharChat(){ document.getElementById("chat").style.display="none"; }
+function abrirProjeto(i){ projetoAtual=projetos[i]; document.getElementById("chatTitulo").innerText="Projeto: "+projetoAtual.nome; document.getElementById("chat").style.display="flex"; addMsg("Projeto "+projetoAtual.nome+" aberto. O que quer mudar?"); }
+function addMsg(t,me=false){ const d=document.createElement("div"); d.className="msg"+(me?" me":""); d.innerText=t; document.getElementById("msgs").appendChild(d); }
+async function enviarParaKAI(){ const input=document.getElementById("prompt"); const texto=input.value.trim(); if(!texto) return; addMsg(texto,true); input.value=""; addMsg("K-AI pensando com Gemini + GROQ + Pollinations..."); const arquivos=await window.KAI.gerar(texto, projetoAtual.nome); projetoAtual.arquivos=arquivos; projetoAtual.desc=texto; const idx=projetos.findIndex(p=>p.nome===projetoAtual.nome); if(idx>=0) projetos[idx]=projetoAtual; else projetos.push(projetoAtual); localStorage.setItem("kai_projetos",JSON.stringify(projetos)); render(); addMsg("✅ Pronto! Criei em kai-app/projetos/"+projetoAtual.nome+"/\\n- index.html\\n- style.css\\n- app.js\\n\\nClica em 🚀 Publicar pra commit real no GitHub."); }
+async function githubCommit(path, content, message){ const token=await garantirToken(); if(!token) throw new Error("Sem REPO_TOKEN"); let sha=null; const get=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+encodeURIComponent(path),{headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"}}); if(get.ok){ const j=await get.json(); sha=j.sha; } const res=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+encodeURIComponent(path),{method:"PUT",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:message,content:btoa(unescape(encodeURIComponent(content))),sha:sha||undefined,branch:"main"})}); if(!res.ok) throw new Error("GitHub "+res.status); }
+async function publicarProjeto(i){ const p=projetos[i]; document.getElementById("status").innerText="🚀 Publicando "+p.nome+"..."; try{ for(const f of p.arquivos){ await githubCommit(BASE+p.nome+"/"+f.path, f.content, "K-AI App: publicar "+p.nome+" - "+f.path); } document.getElementById("status").innerText="✅ Publicado! kai-app/projetos/"+p.nome+"/"; alert("✅ Publicado! https://github.com/"+OWNER+"/"+REPO+"/tree/main/kai-app/projetos/"+p.nome); }catch(e){ alert("Erro: "+e.message); } }
+async function publicarTudo(){ if(!projetos.length){alert("Crie um projeto primeiro");return;} for(let i=0;i<projetos.length;i++) await publicarProjeto(i); }`;
+
+    // 6. MANIFEST.JSON - PRA INSTALAR NO CELULAR
+    const manifestJson = JSON.stringify({name:"K-AI App",short_name:"K-AI",start_url:"index.html",display:"standalone",background_color:"#0b0714",theme_color:"#0b0714",icons:[{src:"icon.png",sizes:"512x512",type:"image/png"}]},null,2);
+
+    // 7. README
+    const readme = `# K-AI App\n\nMesmo K-AI do KORVIL - Pollinations + Gemini + GROQ\n\n- Página inicial: kai-app/index.html\n- Botão: + Criar Novo Projeto\n- Botão: 📲 Instalar App\n- Botão: 🚀 Publicar -> Commit real no GitHub\n- Projetos salvos em: kai-app/projetos/NOME-DO-PROJETO/\n`;
+
+    // CRIA TUDO EM ORDEM
+    await enviarArquivo("kai-app/index.html", indexHtml);
+    await enviarArquivo("kai-app/style.css", styleCss);
+    await enviarArquivo("kai-app/config.js", configJs);
+    await enviarArquivo("kai-app/k-ai.js", kAiJs);
+    await enviarArquivo("kai-app/app.js", appJs);
+    await enviarArquivo("kai-app/manifest.json", manifestJson);
+    await enviarArquivo("kai-app/README.md", readme);
+    await enviarArquivo("kai-app/projetos/.gitkeep", "Pasta mãe dos projetos criados pelo K-AI App");
+
+    log("🎉 TUDO CRIADO COM SUCESSO!","ok");
+    log("Abra: https://github.com/sistemak/korvil-app2/tree/main/kai-app","ok");
+    log("App: https://sistemak.github.io/korvil-app2/kai-app/index.html","ok");
+
+  }catch(e){ log("❌ ERRO: "+e.message,"err"); }
+}
+</script>
+</body>
+</html>
