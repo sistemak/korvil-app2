@@ -84,6 +84,7 @@ var indexHtml=[
 "</div>",
 "<script src=\"config.js\"></scr'+'ipt><script src=\"k-ai.js\"></scr'+'ipt><script src=\"app.js\"></scr'+'ipt>",
 "<script src=\"conectar.js\"></scr'+'ipt>",
+"<script src=\"terminal.js\"></scr'+'ipt>",
 "</body></html>",
 ""
 ].join('\n');
@@ -209,6 +210,42 @@ var conectarJs=[
 "  try{var tk=localStorage.getItem('REPO_TOKEN');if(tk&&tk.length>20){var bb=document.getElementById('btnEntrar');if(bb){bb.innerText='Conectado OK';bb.style.background='#22c55e';bb.style.color='#000';}var ss=document.getElementById('statusConexao');if(ss)ss.innerText='Conectado: sistemak/korvil-app2 - Publicar faz commit real em kai-app/projetos/';}}catch(e){}",
 "},800);"
 ].join('\n');
+var terminalJs=[
+"// K-AI Terminal Virtual - dentro do chat, mesmo visual - igual Termux, em JS",
+"// Comandos: criar, editar, listar, apagar, publicar, abrir, ajuda, limpar",
+"// NUNCA mexe fora de kai-app/projetos/ - nunca mexe no projeto KORVIL do Bolt",
+"window.KAI_TERMINAL = {",
+"  ehComando: function(texto){var t=texto.trim().toLowerCase();return t.indexOf('criar ')===0||t.indexOf('criar\t')===0||t==='criar'||t.indexOf('editar ')===0||t.indexOf('edit ')===0||t.indexOf('listar')===0||t==='ls'||t==='projetos'||t.indexOf('apagar ')===0||t.indexOf('deletar ')===0||t.indexOf('excluir ')===0||t.indexOf('rm ')===0||t.indexOf('publicar')===0||t.indexOf('publish')===0||t.indexOf('abrir ')===0||t==='ajuda'||t==='help'||t==='comandos'||t==='limpar'||t==='clear'||t.indexOf('corrigir ')===0||t.indexOf('melhorar ')===0||t.indexOf('adicionar ')===0||t.indexOf('refazer ')===0;},",
+"  ajuda: function(){return 'K-AI Terminal - comandos:\\n\\ncriar app-de-vendas - cria app novo\\ncriar app-de-vendas com botao verde - cria com descricao\\neditar app-de-vendas muda o botao pra verde - edita projeto\\ncorrigir app-de-vendas - corrige erro\\nmelhorar app-de-vendas - melhora visual\\nadicionar app-de-vendas um botao novo - adiciona\\nrefazer app-de-vendas - refaz do zero\\nlistar - lista todos os projetos\\nabrir app-de-vendas - abre projeto\\napagar app-de-vendas - apaga projeto (so kai-app/projetos/)\\npublicar - publica projeto atual no GitHub\\npublicar app-de-vendas - publica um projeto\\nlimpar - limpa o chat\\najuda - mostra isso aqui';},",
+"  listar: function(){if(!projetos.length)return 'Nenhum projeto ainda. Digite: criar meu-app';return 'Projetos ('+projetos.length+'):\\n'+projetos.map(function(p,i){return (i+1)+'. '+p.nome+' - '+p.arquivos.length+' arquivos - '+(p.desc||'').slice(0,60);}).join('\\n');},",
+"  achar: function(nome){nome=(nome||'').toLowerCase().trim();return projetos.find(function(p){return p.nome.toLowerCase()===nome;});},",
+"  executar: async function(textoOriginal){",
+"    var texto=textoOriginal.trim();var low=texto.toLowerCase();",
+"    if(low==='ajuda'||low==='help'||low==='comandos'){addMsg(this.ajuda());return true;}",
+"    if(low==='limpar'||low==='clear'){var m=document.getElementById('msgs');if(m)m.innerHTML='';addMsg('Chat limpo. Digite ajuda para ver os comandos.');return true;}",
+"    if(low==='listar'||low==='ls'||low==='projetos'){addMsg(this.listar());return true;}",
+"    if(low.indexOf('abrir ')===0){var nomeAbrir=texto.slice(6).trim();var pa=this.achar(nomeAbrir);if(!pa){addMsg('Projeto nao achado: '+nomeAbrir+'\\n'+this.listar());return true;}var idx=projetos.indexOf(pa);abrirProjeto(idx);addMsg('Projeto '+pa.nome+' aberto.');return true;}",
+"    if(low.indexOf('apagar ')===0||low.indexOf('deletar ')===0||low.indexOf('excluir ')===0||low.indexOf('rm ')===0){var nomeApagar=texto.split(' ').slice(1).join(' ').trim();var pd=this.achar(nomeApagar);if(!pd){addMsg('Projeto nao achado: '+nomeApagar);return true;}if(!confirm('Apagar '+pd.nome+'? Isso apaga so de kai-app/projetos/, nunca mexe no KORVIL.'))return true;var ii=projetos.indexOf(pd);projetos.splice(ii,1);salvar();renderProjetos();renderHome();if(projetoAtual&&projetoAtual.nome===pd.nome)projetoAtual=null;addMsg('Apagado: '+pd.nome+' (so local + kai-app/projetos/)');return true;}",
+"    if(low.indexOf('publicar')===0||low.indexOf('publish')===0){var partes=texto.split(' ');var nomePub=partes.length>1?partes.slice(1).join(' ').trim():'';var pp=nomePub?this.achar(nomePub):projetoAtual;if(!pp){addMsg('Nenhum projeto para publicar. Crie um primeiro: criar meu-app');return true;}var ip=projetos.indexOf(pp);addMsg('Publicando '+pp.nome+' no GitHub (commit real em kai-app/projetos/)...');await publicarProjeto(ip);addMsg('Publicado! '+pp.nome);return true;}",
+"    if(low.indexOf('criar ')===0||low==='criar'){var resto=texto.slice(6).trim();if(!resto){addMsg('Uso: criar nome-do-app + descricao. Ex: criar app-de-vendas com botao verde');return true;}var partesCriar=resto.split(' ');var nomeNovo=partesCriar[0].toLowerCase().replace(/[^a-z0-9-]/g,'-');var descCriar=resto;var ja=this.achar(nomeNovo);if(ja){addMsg('Projeto '+nomeNovo+' ja existe. Vou editar ele.');projetoAtual=ja;}else{projetoAtual={nome:nomeNovo,desc:descCriar,arquivos:[],msgs:[],criadoEm:Date.now()};projetos.unshift(projetoAtual);}salvar();renderProjetos();addMsg('Terminal: criando '+nomeNovo+'...');await enviarTexto(descCriar,true);return true;}",
+"    if(low.indexOf('editar ')===0||low.indexOf('edit ')===0||low.indexOf('corrigir ')===0||low.indexOf('melhorar ')===0||low.indexOf('adicionar ')===0||low.indexOf('refazer ')===0){var resto2=texto;var primeira=resto2.split(' ')[0];var restoSemPrimeira=resto2.slice(primeira.length).trim();var partes2=restoSemPrimeira.split(' ');var nomeEdit=partes2[0]||'';var pe=this.achar(nomeEdit);if(!pe){addMsg('Projeto nao achado: '+nomeEdit+'. Digite listar para ver os projetos.');return true;}projetoAtual=pe;var idx2=projetos.indexOf(pe);abrirProjeto(idx2);addMsg('Terminal: executando '+primeira+' em '+pe.nome+'...');await enviarTexto(restoSemPrimeira,true);return true;}",
+"    return false;",
+"  }",
+"};",
+"// Intercepta o enviar do chat sem mudar o visual: se for comando de terminal, executa como terminal. Se nao for, vai para a IA normal.",
+"setTimeout(function(){",
+"  if(typeof enviarParaKAI==='function'&&!enviarParaKAI._terminal){",
+"    var _orig=enviarParaKAI;",
+"    var _nova=async function(){var input=document.getElementById('prompt');var texto=input?input.value.trim():'';if(texto&&window.KAI_TERMINAL.ehComando(texto)){input.value='';addMsg('$ '+texto,true);var ok=await window.KAI_TERMINAL.executar(texto);if(ok)return;}return _orig();};",
+"    _nova._terminal=true; enviarParaKAI=_nova;",
+"  }",
+"  if(typeof criarDoHome==='function'&&!criarDoHome._terminal){",
+"    var _origHome=criarDoHome;",
+"    var _novaHome=function(){var inp=document.getElementById('promptHome');var tx=inp?inp.value.trim():'';if(tx&&window.KAI_TERMINAL.ehComando(tx)){addMsg('$ '+tx,true);window.KAI_TERMINAL.executar(tx);return;}return _origHome();};",
+"    _novaHome._terminal=true; criarDoHome=_novaHome;",
+"  }",
+"},800);"
+].join('\n');
 var manifestJson=JSON.stringify({name:'K-AI App',short_name:'K-AI',start_url:'index.html',display:'standalone',background_color:'#0b0714',theme_color:'#0b0714',icons:[{src:'icon.png',sizes:'512x512',type:'image/png'}]},null,2);
 var readme='# K-AI App - Clone Bolt com Supabase\n\nGemini + GROQ + Pollinations juntos via Supabase Edge Functions\n\n## Backend\n- POST /functions/v1/k-ai\n- POST /functions/v1/publish\n\n## Secrets (Supabase Dashboard > Edge Functions > Secrets)\nGEMINI_API_KEY / GROQ_API_KEY / GH_TOKEN / REPO_TOKEN\n\n## Deploy (se precisar re-deployar)\nVia Editor no Supabase ou: supabase functions deploy k-ai / publish\n';
 var sqlMig=['-- K-AI App - Tabelas Supabase','create table if not exists public.kai_projetos (id uuid default gen_random_uuid() primary key, nome text not null, descricao text, arquivos jsonb default \'[]\'::jsonb, created_at timestamptz default now());','create table if not exists public.kai_mensagens (id uuid default gen_random_uuid() primary key, projeto_id uuid references public.kai_projetos(id) on delete cascade, papel text, conteudo text, created_at timestamptz default now());','alter table public.kai_projetos enable row level security;','alter table public.kai_mensagens enable row level security;','create policy "leitura publica projetos" on public.kai_projetos for select using (true);','create policy "escrita publica projetos" on public.kai_projetos for insert with check (true);','create policy "update publica projetos" on public.kai_projetos for update using (true);','create policy "leitura publica mensagens" on public.kai_mensagens for select using (true);','create policy "escrita publica mensagens" on public.kai_mensagens for insert with check (true);'].join('\n');
@@ -267,6 +304,7 @@ await enviarArquivo('kai-app/config.js',configJs);
 await enviarArquivo('kai-app/k-ai.js',kAiJs);
 await enviarArquivo('kai-app/app.js',appJs);
 await enviarArquivo('kai-app/conectar.js',conectarJs);
+await enviarArquivo('kai-app/terminal.js',terminalJs);
 await enviarArquivo('kai-app/chat.css',chatCss);
 await enviarArquivo('kai-app/EDITOR.md',editorMd);
 await enviarArquivo('kai-app/AJUDA.md',ajudaMd);
