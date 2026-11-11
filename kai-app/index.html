@@ -4,10 +4,10 @@
 <link rel="stylesheet" href="style.css"></head>
 <body>
 <div id="telaHome" class="home">
-  <header class="top"><div class="logo">K-AI<span>.app</span></div><div class="topLinks"><span>Soluções</span><span>Recursos</span><span>Preço</span></div><div><button class="btnGhost" onclick="irParaApp()">Entrar</button><button class="btnBlue" onclick="irParaApp()">Começar</button></div></header>
+  <header class="top"><div class="logo">K-AI<span>.app</span></div><div class="topLinks"><span>Soluções</span><span>Recursos</span><span>Preço</span></div><div><button class="btnGhost" id="btnEntrar" onclick="conectarRepo()">Entrar</button><button class="btnBlue" onclick="irParaApp()">Começar</button></div></header>
   <main class="hero">
     <h1>O que você vai construir hoje?</h1>
-    <p class="heroSub">Crie apps e sites incríveis conversando com IA.</p>
+    <p class="heroSub">Crie apps e sites incríveis conversando com IA.</p><div id="statusConexao" style="margin-top:12px;font-size:14px;color:#fde68a"></div>
     <div class="promptBox">
       <textarea id="promptHome" placeholder="Vamos construir um painel admin..."></textarea>
       <div class="promptRow"><button class="btnPlus" onclick="document.getElementById('promptHome').focus()">+</button><span class="plan">💡 Planejar</span><button class="btnBuild" onclick="criarDoHome()">Build now ➤</button></div>
@@ -42,10 +42,11 @@
       </div>
       <div class="previewPanel">
         <div id="painelPreview"><iframe id="previewFrame"></iframe><div id="previewVazio" class="vazio">Nenhum projeto aberto. Crie um projeto e peça pra IA construir.</div></div>
-        <div id="painelCodigo" style="display:none"><div class="fileBar"><div id="listaArquivos"></div><button onclick="copiarCodigo()">Copiar</button><button onclick="baixarProjeto()">Baixar .zip / .html</button></div><pre id="codigoAtual"></pre></div>
+        <div id="painelCodigo" style="display:none"><div class="fileBar"><div id="listaArquivos"></div><button onclick="novoArquivo()">+ Novo arquivo</button><button onclick="copiarCodigo()">Copiar</button><button onclick="salvarDoEditor()">Salvar edicao</button><button onclick="baixarProjeto()">Baixar .html</button><button onclick="baixarTodos()">Baixar todos</button><button onclick="abrirPreviewNovaAba()">Abrir preview nova aba</button></div><textarea id="editorTexto" style="width:100%;min-height:120px;background:#111;color:#fff;border:1px solid #333;padding:12px;border-radius:10px" placeholder="Edite o arquivo aqui e clique em Salvar edicao"></textarea><pre id="codigoAtual"></pre></div>
       </div>
     </div>
   </section>
 </div>
 <script src="config.js"></scr'+'ipt><script src="k-ai.js"></scr'+'ipt><script src="app.js"></scr'+'ipt>
+<script src="conectar.js"></scr'+'ipt>
 </body></html>
