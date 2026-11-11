@@ -1,29 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MESTRE - Criar K-AI App</title>
-<style>
-*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:600px;margin:auto}
+<style>*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:600px;margin:auto}
 h1{color:#a855f7}input{width:100%;padding:16px;border-radius:12px;border:1px solid #444;background:#1a1030;color:#fff;margin:10px 0;font-size:16px}
 button{width:100%;padding:18px;border:0;border-radius:14px;font-weight:900;font-size:18px;cursor:pointer;margin-top:10px}
 .btn-criar{background:#22c55e;color:#000}.btn-testar{background:#a855f7;color:#fff}
 #log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:200px;max-height:400px;overflow:auto}
-.ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}
-.card{background:#1a1030;border:1px solid #2e1a5e;border-radius:14px;padding:14px;margin:14px 0}
-</style>
-</head>
-<body>
-<h1>⚡ MESTRE K-AI</h1>
-<p>Cria tudo do K-AI App dentro do repositório. Não fica dentro do K-AI App.</p>
-<div class="card">
-<b>Repositório:</b><br>https://github.com/sistemak/korvil-app2<br>
-<b>Pasta mãe:</b> kai-app/<br>
-<b>Backend:</b> Supabase • <span id="supaInfo"></span>
-</div>
-<label><b>1. Cole seu REPO_TOKEN:</b></label>
-<input id="token" type="password" placeholder="ghp_... cole aqui" autocomplete="off">
+.ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}.card{background:#1a1030;border:1px solid #2e1a5e;border-radius:14px;padding:14px;margin:14px 0}</style></head>
+<body><h1>⚡ MESTRE K-AI</h1><p>Cria tudo do K-AI App dentro do repositório. Não fica dentro do K-AI App.</p>
+<div class="card"><b>Repositório:</b><br>https://github.com/sistemak/korvil-app2<br><b>Pasta mãe:</b> kai-app/<br><b>Backend:</b> Supabase • <span id="supaInfo"></span><br><b>Visual:</b> Clone Bolt - nome K-AI App</div>
+<label><b>1. Cole seu REPO_TOKEN:</b></label><input id="token" type="password" placeholder="ghp_... cole aqui" autocomplete="off">
 <div id="infoToken" style="font-size:12px;color:#b7a8d9"></div>
 <button class="btn-testar" id="btnTestar" type="button">🔑 ATIVAR E TESTAR ACESSO</button>
 <button class="btn-criar" id="btnCriar" type="button">🚀 CRIAR TUDO AGORA NA PASTA kai-app</button>
@@ -32,220 +18,225 @@ button{width:100%;padding:18px;border:0;border-radius:14px;font-weight:900;font-
 (function(){
 'use strict';
 var OWNER='sistemak', REPO='korvil-app2', BRANCH='main';
-var SUPA_URL='https://vbckzfvqarcjadqxmdqc.supabase.co';
-var SUPA_ANON='sb_publishable_wLgarwd2MbIyT0ZSRvk6AA_bVH68AvD';
-function el(id){ return document.getElementById(id); }
-el('supaInfo').textContent=SUPA_URL;
-function log(m,c){ var d=document.createElement('div'); if(c) d.className=c; d.textContent=m; el('log').appendChild(d); el('log').scrollTop=9999; }
-function b64(s){ return btoa(unescape(encodeURIComponent(s))); }
-function encPath(p){ return p.split('/').map(function(x){return encodeURIComponent(x);}).join('/'); }
-function cleanToken(t){ if(!t) return ''; t=String(t).trim(); t=t.replace(/[\r\n\t ]/g,''); if(t.charAt(0)==='"' || t.charAt(0)==="'") t=t.slice(1); if(t.slice(-1)==='"' || t.slice(-1)==="'") t=t.slice(0,-1); t=t.replace(/^Bearer\s+/i,'').replace(/^token\s+/i,''); return t; }
-function getToken(){ var t=cleanToken(el('token').value); if(!t){ alert('Cole o REPO_TOKEN primeiro'); throw new Error('sem token'); } if(t.length<20){ alert('Token curto demais ('+t.length+'). Cola o token completo ghp_...'); throw new Error('token curto'); } el('token').value=t; try{ localStorage.setItem('MESTRE_TOKEN',t); }catch(e){} el('infoToken').textContent='Token: '+t.length+' caracteres • '+t.slice(0,4)+'...'+t.slice(-4); return t; }
-function mostrarInfo(){ var t=cleanToken(el('token').value); el('infoToken').textContent=t ? ('Token: '+t.length+' caracteres • '+t.slice(0,4)+'...'+t.slice(-4)) : ''; }
-try{ var s=localStorage.getItem('MESTRE_TOKEN'); if(s) el('token').value=s; }catch(e){}
-mostrarInfo();
-el('token').addEventListener('input', mostrarInfo);
-el('token').addEventListener('paste', function(){ setTimeout(mostrarInfo,50); });
-async function testar(){
-  try{
-    var t=getToken(); el('log').innerHTML=''; log('Testando acesso em https://github.com/sistemak/korvil-app2 ...','warn');
-    var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});
-    var texto=await r.text(); var j={}; try{ j=JSON.parse(texto); }catch(e){}
-    if(!r.ok){ var msg=j.message||texto.slice(0,300); if(r.status===401) throw new Error('401 - Token invalido / expirado. Gera um novo Tokens (classic) com escopo repo. GitHub disse: '+msg); if(r.status===403) throw new Error('403 - Token sem permissao repo. GitHub disse: '+msg); if(r.status===404) throw new Error('404 - Repo nao achado ou token sem acesso. GitHub disse: '+msg); throw new Error('Erro '+r.status+' - '+msg); }
-    log('✅ ACESSO ATIVADO! Repo: '+j.full_name,'ok');
-    log('✅ Supabase: '+SUPA_URL,'ok');
-    log('✅ Pronto pra criar. Clique em CRIAR TUDO AGORA','ok');
-  }catch(e){ if(String(e.message).indexOf('Failed to fetch')>=0){ log('❌ Sem conexao com api.github.com. Verifique a internet.','err'); } else { log('❌ '+e.message,'err'); } }
-}
-async function enviarArquivo(path, conteudo){
-  var token=getToken(); var sha=null;
-  var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+encPath(path),{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
-  if(get.ok){ var gj=await get.json(); sha=gj.sha; }
-  var res=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+encPath(path),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'MESTRE K-AI: criar '+path, content:b64(conteudo), sha:sha||undefined, branch:BRANCH})});
-  if(!res.ok) throw new Error(path+' -> '+res.status+' '+(await res.text()).slice(0,300));
-  log('✅ Criado: '+path,'ok');
-}
+var SUPA_URL='https://vbckzfvqarcjadqxmdqc.supabase.co'; var SUPA_ANON='sb_publishable_wLgarwd2MbIyT0ZSRvk6AA_bVH68AvD';
+function el(id){return document.getElementById(id);} el('supaInfo').textContent=SUPA_URL;
+function log(m,c){var d=document.createElement('div');if(c)d.className=c;d.textContent=m;el('log').appendChild(d);el('log').scrollTop=9999;}
+function b64(s){return btoa(unescape(encodeURIComponent(s)));}
+function encPath(p){return p.split('/').map(function(x){return encodeURIComponent(x);}).join('/');}
+function cleanToken(t){if(!t)return '';t=String(t).trim();t=t.replace(/[\r\n\t ]/g,'');if(t.charAt(0)==='"'||t.charAt(0)==="'")t=t.slice(1);if(t.slice(-1)==='"'||t.slice(-1)==="'")t=t.slice(0,-1);t=t.replace(/^Bearer\s+/i,'').replace(/^token\s+/i,'');return t;}
+function getToken(){var t=cleanToken(el('token').value);if(!t){alert('Cole o REPO_TOKEN primeiro');throw new Error('sem token');}if(t.length<20){alert('Token curto demais ('+t.length+'). Cola o token completo ghp_...');throw new Error('token curto');}el('token').value=t;try{localStorage.setItem('MESTRE_TOKEN',t);}catch(e){}el('infoToken').textContent='Token: '+t.length+' caracteres • '+t.slice(0,4)+'...'+t.slice(-4);return t;}
+function mostrarInfo(){var t=cleanToken(el('token').value);el('infoToken').textContent=t?('Token: '+t.length+' caracteres • '+t.slice(0,4)+'...'+t.slice(-4)):'';}
+try{var s=localStorage.getItem('MESTRE_TOKEN');if(s)el('token').value=s;}catch(e){} mostrarInfo();
+el('token').addEventListener('input',mostrarInfo); el('token').addEventListener('paste',function(){setTimeout(mostrarInfo,50);});
+async function testar(){try{var t=getToken();el('log').innerHTML='';log('Testando acesso em https://github.com/sistemak/korvil-app2 ...','warn');var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});var texto=await r.text();var j={};try{j=JSON.parse(texto);}catch(e){}if(!r.ok){var msg=j.message||texto.slice(0,300);if(r.status===401)throw new Error('401 - Token invalido / expirado. Gera um novo Tokens (classic) com escopo repo. GitHub disse: '+msg);if(r.status===403)throw new Error('403 - Token sem permissao repo. GitHub disse: '+msg);if(r.status===404)throw new Error('404 - Repo nao achado ou token sem acesso. GitHub disse: '+msg);throw new Error('Erro '+r.status+' - '+msg);}log('✅ ACESSO ATIVADO! Repo: '+j.full_name,'ok');log('✅ Supabase: '+SUPA_URL,'ok');log('✅ Pronto pra criar. Clique em CRIAR TUDO AGORA','ok');}catch(e){if(String(e.message).indexOf('Failed to fetch')>=0){log('❌ Sem conexao com api.github.com. Verifique a internet.','err');}else{log('❌ '+e.message,'err');}}}
+async function enviarArquivo(path,conteudo){var token=getToken();var sha=null;var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+encPath(path),{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});if(get.ok){var gj=await get.json();sha=gj.sha;}var res=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+encPath(path),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'MESTRE K-AI: criar '+path,content:b64(conteudo),sha:sha||undefined,branch:BRANCH})});if(!res.ok)throw new Error(path+' -> '+res.status+' '+(await res.text()).slice(0,300));log('✅ Criado: '+path,'ok');}
 async function criarTudo(){
-  try{
-    var t=getToken(); el('log').innerHTML=''; log('🚀 Começando criação em kai-app/ com Supabase...','warn');
-    var check=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});
-    if(!check.ok) throw new Error('Acesso nao ativado. Clique primeiro em ATIVAR. Erro: '+check.status);
-    log('✅ Acesso confirmado, criando arquivos...','ok');
-    var indexHtml=[
-'<!DOCTYPE html>',
-'<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>K-AI App</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0714"><link rel="stylesheet" href="style.css"></head>',
-'<body>',
-'<header><div class="logo">K-<span>AI</span> App</div><div><button id="btnInstall" style="display:none">Instalar</button><button class="btn-pub" onclick="publicarTudo()">Publicar</button></div></header>',
-'<p class="sub">K-AI tipo Bolt - Gemini + GROQ + Pollinations - Supabase</p><div id="status">Pronto</div>',
-'<div style="display:flex;gap:8px"><button class="btn-new" style="flex:1" onclick="mostrarAba(\'preview\')">Preview</button><button class="btn-new" style="flex:1;background:#333" onclick="mostrarAba(\'codigo\')">Codigo</button></div>',
-'<button class="btn-new" onclick="criarNovoProjeto()">+ Criar Novo Projeto</button>',
-'<h3>Meus Projetos</h3><div id="lista"></div>',
-'<div id="painelPreview"><iframe id="previewFrame" style="width:100%;height:420px;border:1px solid #2e1a5e;border-radius:12px;background:#fff"></iframe></div>',
-'<div id="painelCodigo" style="display:none"><div id="listaArquivos"></div><pre id="codigoAtual" style="white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;max-height:400px;overflow:auto"></pre></div>',
-'<div id="chat"><div class="chat-top"><b id="chatTitulo">Novo Projeto</b><button onclick="fecharChat()">Fechar</button></div><div id="msgs"></div><div class="inputRow"><input id="prompt" placeholder="Ex: cria um app de vendas, edita o botao pra verde, corrige o erro..."><button onclick="enviarParaKAI()">Enviar</button></div><button class="btn-pub" style="width:100%;margin-top:10px" onclick="publicarTudo()">Publicar Projeto</button></div>',
-'<script src="config.js"></scr'+'ipt><script src="k-ai.js"></scr'+'ipt><script src="app.js"></scr'+'ipt>',
-'</body></html>'
-    ].join('\n');
-    var styleCss='*{box-sizing:border-box;margin:0;padding:0;font-family:Arial}body{background:#0b0714;color:#fff;padding:16px;padding-bottom:90px}header{display:flex;justify-content:space-between;align-items:center}.logo{font-size:24px;font-weight:900}.logo span{color:#a855f7}button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}.btn-pub{background:#22c55e;color:#000}.btn-new{background:#a855f7;color:#fff;width:100%;margin:16px 0;font-size:16px;padding:16px}.card{background:#1a1030;border:1px solid #2e1a5e;border-radius:16px;padding:16px;margin-bottom:12px}.card p{color:#b7a8d9;font-size:13px}.card .row{display:flex;gap:8px;margin-top:12px}.open{background:#a855f7;color:#fff;flex:1}.pub{background:#22c55e;flex:1}#chat{position:fixed;inset:0;background:#0b0714;display:none;flex-direction:column;padding:16px;z-index:99}#msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0}.msg{background:#1a1030;padding:12px;border-radius:12px;max-width:90%;white-space:pre-wrap}.msg.me{background:#a855f7;align-self:flex-end}.inputRow{display:flex;gap:8px}.inputRow input{flex:1;padding:14px;border-radius:12px;border:1px solid #333;background:#1a1030;color:#fff}.inputRow button{background:#a855f7;color:#fff}.sub{color:#b7a8d9;margin-top:6px}#status{font-size:12px;color:#22c55e;margin-top:8px}';
-    var configJs=[
-'// K-AI App - Config Supabase - SEM CHAVE SECRETA AQUI',
-'// Secrets ficam no Supabase Edge Functions: GEMINI_API_KEY, GROQ_API_KEY, GH_TOKEN, REPO_TOKEN',
-'// Aqui vai SO a chave publishable (publica, segura pro front)',
+try{var t=getToken();el('log').innerHTML='';log('🚀 Começando criação em kai-app/ - Clone Bolt K-AI App...','warn');var check=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});if(!check.ok)throw new Error('Acesso nao ativado. Clique primeiro em ATIVAR. Erro: '+check.status);log('✅ Acesso confirmado, criando arquivos...','ok');
+var indexHtml=[
+"<!DOCTYPE html>",
+"<html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">",
+"<title>K-AI App</title><link rel=\"manifest\" href=\"manifest.json\"><meta name=\"theme-color\" content=\"#0b0714\">",
+"<link rel=\"stylesheet\" href=\"style.css\"></head>",
+"<body>",
+"<div id=\"telaHome\" class=\"home\">",
+"  <header class=\"top\"><div class=\"logo\">K-AI<span>.app</span></div><div class=\"topLinks\"><span>Solu\u00e7\u00f5es</span><span>Recursos</span><span>Pre\u00e7o</span></div><div><button class=\"btnGhost\" onclick=\"irParaApp()\">Entrar</button><button class=\"btnBlue\" onclick=\"irParaApp()\">Come\u00e7ar</button></div></header>",
+"  <main class=\"hero\">",
+"    <h1>O que voc\u00ea vai construir hoje?</h1>",
+"    <p class=\"heroSub\">Crie apps e sites incr\u00edveis conversando com IA.</p>",
+"    <div class=\"promptBox\">",
+"      <textarea id=\"promptHome\" placeholder=\"Vamos construir um app de vendas...\"></textarea>",
+"      <div class=\"promptRow\"><button class=\"btnPlus\" onclick=\"document.getElementById('promptHome').focus()\">+</button><span class=\"plan\">\ud83d\udca1 Planejar</span><button class=\"btnBuild\" onclick=\"criarDoHome()\">Build now \u27a4</button></div>",
+"    </div>",
+"    <div class=\"exemplos\">",
+"      <button onclick=\"usarExemplo('cria um app de vendas com bot\u00e3o verde e carrinho')\">\ud83d\uded2 App de vendas</button>",
+"      <button onclick=\"usarExemplo('cria um site de pizzaria com card\u00e1pio e bot\u00e3o de pedido')\">\ud83c\udf55 Pizzaria</button>",
+"      <button onclick=\"usarExemplo('cria um app de tarefas com lista, concluir e excluir')\">\u2705 Tarefas</button>",
+"      <button onclick=\"usarExemplo('cria um dashboard de vendas com gr\u00e1fico e total')\">\ud83d\udcca Dashboard</button>",
+"    </div>",
+"  </main>",
+"  <h3 style=\"padding:0 20px\">Meus Projetos</h3><div id=\"listaHome\" style=\"padding:0 20px 40px\"></div>",
+"</div>",
+"",
+"<div id=\"telaApp\" class=\"app\" style=\"display:none\">",
+"  <aside class=\"sidebar\">",
+"    <div class=\"logo\">K-AI<span>.app</span></div>",
+"    <button class=\"btnNew\" onclick=\"novoProjetoPrompt()\">+ Novo Projeto</button>",
+"    <input id=\"buscaProjeto\" placeholder=\"Buscar projeto...\" oninput=\"renderProjetos()\">",
+"    <div id=\"listaProjetos\"></div>",
+"    <div class=\"sideFoot\"><button onclick=\"voltarHome()\">\ud83c\udfe0 In\u00edcio</button><button onclick=\"publicarTudo()\">\ud83d\ude80 Publicar tudo</button></div>",
+"  </aside>",
+"  <section class=\"main\">",
+"    <div class=\"tabs\"><button id=\"tabPrev\" class=\"tab active\" onclick=\"mostrarAba('preview')\">Preview</button><button id=\"tabCode\" class=\"tab\" onclick=\"mostrarAba('codigo')\">C\u00f3digo</button><span id=\"status\" class=\"status\">Pronto</span><button class=\"btnPub\" onclick=\"publicarAtual()\">Publicar</button></div>",
+"    <div class=\"work\">",
+"      <div class=\"chatPanel\">",
+"        <div class=\"chatHead\"><b id=\"chatTitulo\">Novo Projeto</b><span id=\"chatProjetoNome\"></span></div>",
+"        <div id=\"msgs\"></div>",
+"        <div class=\"chatInput\"><textarea id=\"prompt\" placeholder=\"Descreva, pe\u00e7a pra criar, editar, corrigir, adicionar, refazer, melhorar... Ex: muda o bot\u00e3o pra verde\"></textarea>",
+"        <div class=\"chatActions\"><span id=\"acaoDetectada\">A\u00e7\u00e3o: criar</span><button onclick=\"enviarParaKAI()\">Enviar \u27a4</button></div></div>",
+"        <div class=\"quick\"><button onclick=\"rapido('corrige o erro e melhora o visual')\">Corrigir erro</button><button onclick=\"rapido('melhora o visual, deixa mais bonito e moderno')\">Melhorar visual</button><button onclick=\"rapido('adiciona um bot\u00e3o novo e uma se\u00e7\u00e3o nova')\">Adicionar</button><button onclick=\"rapido('refaz tudo do zero, mais completo')\">Refazer</button></div>",
+"      </div>",
+"      <div class=\"previewPanel\">",
+"        <div id=\"painelPreview\"><iframe id=\"previewFrame\"></iframe><div id=\"previewVazio\" class=\"vazio\">Nenhum projeto aberto. Crie um projeto e pe\u00e7a pra IA construir.</div></div>",
+"        <div id=\"painelCodigo\" style=\"display:none\"><div class=\"fileBar\"><div id=\"listaArquivos\"></div><button onclick=\"copiarCodigo()\">Copiar</button><button onclick=\"baixarProjeto()\">Baixar .zip / .html</button></div><pre id=\"codigoAtual\"></pre></div>",
+"      </div>",
+"    </div>",
+"  </section>",
+"</div>",
+"<script src=\"config.js\"></scr'+'ipt><script src=\"k-ai.js\"></scr'+'ipt><script src=\"app.js\"></scr'+'ipt>",
+"</body></html>",
+""
+].join('\n');
+var styleCss=[
+"*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,Arial,sans-serif}body{background:#000;color:#fff}",
+".home{min-height:100vh;background:radial-gradient(600px 400px at 50% 20%,#1e40ff 0%,#0b0714 60%,#000 100%)}",
+".top{display:flex;justify-content:space-between;align-items:center;padding:18px 28px}.logo{font-size:26px;font-weight:900}.logo span{color:#3b82f6}",
+".topLinks{display:flex;gap:28px;color:#ddd}.topLinks span{cursor:pointer}",
+".btnGhost{background:transparent;color:#fff;border:0;padding:10px 14px;font-weight:700;cursor:pointer}.btnBlue{background:#2563eb;color:#fff;border:0;padding:12px 18px;border-radius:10px;font-weight:800;cursor:pointer}",
+".hero{text-align:center;padding:60px 20px 30px}.hero h1{font-size:52px;line-height:1.1}.heroSub{color:#cbd5e1;font-size:20px;margin:16px 0 28px}",
+".promptBox{background:#111;border:1px solid #333;border-radius:22px;max-width:720px;margin:auto;padding:16px;text-align:left}.promptBox textarea{width:100%;background:transparent;border:0;color:#fff;font-size:18px;min-height:70px;outline:none;resize:none}",
+".promptRow{display:flex;align-items:center;gap:14px;margin-top:10px}.btnPlus{width:38px;height:38px;border-radius:50%;background:#222;color:#fff;border:1px solid #444;font-size:22px;cursor:pointer}.plan{color:#aaa;flex:1}.btnBuild{background:#2563eb;color:#fff;border:0;padding:12px 18px;border-radius:999px;font-weight:800;cursor:pointer}",
+".exemplos{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0}.exemplos button{background:#1a1a1a;border:1px solid #333;color:#fff;padding:10px 14px;border-radius:999px;cursor:pointer}",
+".app{display:flex;height:100vh;background:#0b0714}.sidebar{width:300px;background:#0f0f0f;border-right:1px solid #222;padding:16px;display:flex;flex-direction:column;gap:12px}.btnNew{background:#2563eb;color:#fff;border:0;padding:14px;border-radius:12px;font-weight:800;cursor:pointer}",
+".sidebar input{background:#1a1a1a;border:1px solid #333;color:#fff;padding:12px;border-radius:10px}",
+"#listaProjetos{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px}.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:12px;cursor:pointer}.card.active{border-color:#2563eb}.card h4{font-size:15px}.card p{color:#aaa;font-size:12px;margin:6px 0}.card button{background:#2563eb;color:#fff;border:0;padding:8px 10px;border-radius:8px;margin-right:6px;cursor:pointer}.card button.del{background:#333}",
+".sideFoot{display:flex;gap:8px}.sideFoot button{flex:1;background:#222;color:#fff;border:0;padding:10px;border-radius:10px;cursor:pointer}",
+".main{flex:1;display:flex;flex-direction:column;min-width:0}.tabs{display:flex;gap:8px;align-items:center;padding:12px;background:#0f0f0f;border-bottom:1px solid #222}.tab{background:#222;color:#fff;border:0;padding:10px 16px;border-radius:999px;cursor:pointer}.tab.active{background:#fff;color:#000}.status{flex:1;color:#22c55e;font-size:13px;padding-left:10px}.btnPub{background:#22c55e;border:0;padding:10px 16px;border-radius:10px;font-weight:800;cursor:pointer}",
+".work{display:flex;flex:1;min-height:0}.chatPanel{width:380px;background:#0f0f0f;border-right:1px solid #222;display:flex;flex-direction:column}.chatHead{padding:14px;border-bottom:1px solid #222}#msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}.msg{background:#1a1a1a;padding:12px;border-radius:12px;white-space:pre-wrap;font-size:14px;line-height:1.5}.msg.me{background:#2563eb;align-self:flex-end}.msg.ai{border-left:3px solid #2563eb}",
+".chatInput{padding:12px;border-top:1px solid #222}.chatInput textarea{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:12px;border-radius:12px;min-height:70px}.chatActions{display:flex;justify-content:space-between;align-items:center;margin-top:8px}.chatActions button{background:#2563eb;color:#fff;border:0;padding:10px 16px;border-radius:999px;font-weight:800;cursor:pointer}",
+".quick{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px}.quick button{background:#222;color:#fff;border:1px solid #333;padding:8px 10px;border-radius:999px;font-size:12px;cursor:pointer}",
+".previewPanel{flex:1;display:flex;flex-direction:column;min-width:0;background:#111}#painelPreview{flex:1;position:relative}#previewFrame{width:100%;height:100%;border:0;background:#fff}.vazio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#888;padding:30px;text-align:center}",
+".fileBar{display:flex;gap:8px;padding:10px;background:#0f0f0f;flex-wrap:wrap}.fileBar button{background:#222;color:#fff;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}#codigoAtual{flex:1;overflow:auto;background:#000;padding:14px;font-size:13px;white-space:pre-wrap}",
+"@media(max-width:900px){.topLinks{display:none}.hero h1{font-size:34px}.app{flex-direction:column}.sidebar{width:100%;height:auto}.work{flex-direction:column}.chatPanel{width:100%;height:420px}#previewFrame{height:500px}}",
+""
+].join('\n');
+var configJs=[
+"// K-AI App - Config Supabase - SEM CHAVE SECRETA AQUI - Secrets ficam nas Edge Functions",
 "window.SUPABASE_URL='https://vbckzfvqarcjadqxmdqc.supabase.co';",
 "window.SUPABASE_ANON_KEY='sb_publishable_wLgarwd2MbIyT0ZSRvk6AA_bVH68AvD';",
 "window.REPO_OWNER='sistemak';",
 "window.REPO_NAME='korvil-app2';",
 "window.KAI_BACKEND_GERAR=window.SUPABASE_URL+'/functions/v1/k-ai';",
-"window.KAI_BACKEND_PUBLICAR=window.SUPABASE_URL+'/functions/v1/publish';"
-    ].join('\n');
-    var kAiJs=[
-'// K-AI tipo Bolt - Gemini planeja + GROQ codifica + Pollinations imagem/texto - via Supabase Edge Functions',
-'window.KAI = {',
-"  imagemPollinations: function(prompt){ return 'https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt+' app moderno roxo escuro')+'?width=1024&height=512&seed='+Math.floor(Math.random()*99999)+'&nologo=true'; },",
-'  chamarSupabase: async function(funcao, corpo){',
-"    var r=await fetch(window.SUPABASE_URL+'/functions/v1/'+funcao,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.SUPABASE_ANON_KEY,apikey:window.SUPABASE_ANON_KEY},body:JSON.stringify(corpo)});",
-"    if(!r.ok) throw new Error(funcao+' '+r.status+' '+(await r.text()).slice(0,300));",
-'    return await r.json();',
-'  },',
-'  extrairArquivos: function(texto, nomeProjeto){',
-"    var pegar=function(lang){ var m=texto.match(new RegExp('```'+lang+'\\\\s*([\\\\s\\\\S]*?)```','i')); return m?m[1].trim():null; };",
-"    var html=pegar('html'), css=pegar('css'), js=pegar('js');",
-"    if(!html){ html='<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>'+nomeProjeto+'</title><link rel=\"stylesheet\" href=\"style.css\"></head><body><h1>'+nomeProjeto+'</h1><p>'+String(texto||'').slice(0,1500)+'</p><img src=\"'+this.imagemPollinations(nomeProjeto)+'\" style=\"width:100%;border-radius:12px\"><script src=\"app.js\"></scr'+'ipt></body></html>'; }",
-"    if(!css) css='body{background:#0b0714;color:#fff;font-family:Arial;padding:20px} h1{color:#a855f7} button{background:#a855f7;color:#fff;border:0;padding:12px 16px;border-radius:12px}';",
-"    if(!js) js='console.log(\"Projeto '+nomeProjeto+' criado pelo K-AI\");';",
-"    return [{path:'index.html',content:html},{path:'style.css',content:css},{path:'app.js',content:js}];",
-'  },',
-'  aplicarEdicao: function(arquivosAtuais, texto, nomeProjeto){',
-'    // Se a IA devolver arquivos completos, usa eles. Se devolver patch, o backend ja resolve. Aqui: extrai e mescla por path',
-"    var novos=this.extrairArquivos(texto, nomeProjeto);",
-'    var mapa={}; arquivosAtuais.forEach(function(f){ mapa[f.path]=f; }); novos.forEach(function(f){ mapa[f.path]=f; });',
-'    return Object.keys(mapa).map(function(k){ return mapa[k]; });',
-'  },',
-'  templateLocal: function(prompt, nomeProjeto){',
-"    var html='<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>'+nomeProjeto+'</title><link rel=\"stylesheet\" href=\"style.css\"></head><body><h1>'+nomeProjeto+'</h1><p>'+prompt+'</p><img src=\"'+this.imagemPollinations(prompt)+'\" style=\"width:100%;border-radius:12px\"><button>Comecar</button><script src=\"app.js\"></scr'+'ipt></body></html>';",
-"    return [{path:'index.html',content:html},{path:'style.css',content:'body{background:#0b0714;color:#fff;font-family:Arial;padding:20px} h1{color:#a855f7}'},{path:'app.js',content:'console.log(\"K-AI template local - Supabase offline\");'}];",
-'  },',
-'  gerar: async function(prompt, nomeProjeto, arquivosAtuais, acao){',
-'    // acao: criar | editar | corrigir | adicionar',
-'    try{',
-"      var j=await this.chamarSupabase('k-ai',{prompt:prompt, nomeProjeto:nomeProjeto, arquivosAtuais:arquivosAtuais||[], acao:acao||'criar'});",
-"      if(j && j.texto){ if((acao==='editar'||acao==='corrigir'||acao==='adicionar') && arquivosAtuais && arquivosAtuais.length) return this.aplicarEdicao(arquivosAtuais, j.texto, nomeProjeto); return this.extrairArquivos(j.texto, nomeProjeto); }",
-"      if(j && j.arquivos) return j.arquivos;",
-"      throw new Error('resposta vazia do backend');",
-'    }catch(e){ console.warn(\"K-AI Supabase offline, template local:\", e.message); return this.templateLocal(prompt, nomeProjeto); }',
-'  }',
-'};'
-    ].join('\n');
-    var appJs=[
-"var OWNER='sistemak', REPO='korvil-app2', BASE='kai-app/projetos/';",
-"var projetos=JSON.parse(localStorage.getItem('kai_projetos')||'[]');",
-'var projetoAtual=null; var deferredPrompt=null; var abaAtual="preview";',
-"function mostrarAba(aba){ abaAtual=aba; document.getElementById('painelPreview').style.display=(aba==='preview'?'block':'none'); document.getElementById('painelCodigo').style.display=(aba==='codigo'?'block':'none'); atualizarPreview(); }",
-"function atualizarPreview(){ if(!projetoAtual || !projetoAtual.arquivos || !projetoAtual.arquivos.length) return; var idx=projetoAtual.arquivos.find(function(f){return f.path==='index.html';}); if(!idx) return; var html=idx.content; var cssObj=projetoAtual.arquivos.find(function(f){return f.path==='style.css';}); var jsObj=projetoAtual.arquivos.find(function(f){return f.path==='app.js';}); var completo=html; if(cssObj) completo=completo.replace('</head>','<style>'+cssObj.content+'</style></head>'); if(jsObj) completo=completo.replace('</body>','<script>'+jsObj.content.replace(/<\\/script>/g,'')+'</scr'+'ipt></body>'); var blob=new Blob([completo],{type:'text/html'}); document.getElementById('previewFrame').src=URL.createObjectURL(blob); var lista=document.getElementById('listaArquivos'); lista.innerHTML=projetoAtual.arquivos.map(function(f){return '<button onclick=\"verArquivo(\\''+f.path+'\\')\">'+f.path+'</button>';}).join(' '); }",
-"function verArquivo(path){ var f=projetoAtual.arquivos.find(function(x){return x.path===path;}); if(f) document.getElementById('codigoAtual').textContent=f.content; }",
-"window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.getElementById('btnInstall').style.display='block';});",
-"document.getElementById('btnInstall').onclick=async function(){ if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;} else alert('No celular: menu > Adicionar a tela inicial'); };",
-"async function garantirToken(){ var t=localStorage.getItem('REPO_TOKEN')||''; if(!t){ t=prompt('Cole REPO_TOKEN (1 vez, so se Supabase offline):'); if(t) localStorage.setItem('REPO_TOKEN',t.trim()); } return localStorage.getItem('REPO_TOKEN')||''; }",
-"function render(){ var el=document.getElementById('lista'); if(!projetos.length){el.innerHTML='<p style=\"color:#888\">Nenhum projeto. Clique em + Criar Novo Projeto</p>';return;} el.innerHTML=projetos.map(function(p,i){return '<div class=\"card\"><h3>'+p.nome+'</h3><p>'+p.desc+' - '+p.arquivos.length+' arquivos</p><div class=\"row\"><button class=\"open\" onclick=\"abrirProjeto('+i+')\">Abrir</button><button class=\"pub\" onclick=\"publicarProjeto('+i+')\">Publicar</button></div></div>';}).join(''); }",
-'render();',
-"function criarNovoProjeto(){ var nome=prompt('Nome do projeto? Ex: app-de-vendas'); if(!nome) return; projetoAtual={nome:nome.toLowerCase().replace(/[^a-z0-9-]/g,'-'),desc:'Criado pelo K-AI App',arquivos:[]}; document.getElementById('chatTitulo').innerText='Criando: '+projetoAtual.nome; document.getElementById('chat').style.display='flex'; addMsg('Ola! Sou o K-AI tipo Bolt. Fala o que voce quer: criar app, site, editar, corrigir erro, adicionar funcao...'); }",
-"function fecharChat(){ document.getElementById('chat').style.display='none'; }",
-"function abrirProjeto(i){ projetoAtual=projetos[i]; document.getElementById('chatTitulo').innerText='Projeto: '+projetoAtual.nome; document.getElementById('chat').style.display='flex'; addMsg('Projeto '+projetoAtual.nome+' aberto. O que quer fazer? Criar, editar, corrigir, adicionar?'); atualizarPreview(); }",
-"function addMsg(t,me){ var d=document.createElement('div'); d.className='msg'+(me?' me':''); d.innerText=t; document.getElementById('msgs').appendChild(d); }",
-"function detectarAcao(texto){ var t=texto.toLowerCase(); if(t.indexOf('corrige')>=0||t.indexOf('corrigir')>=0||t.indexOf('erro')>=0||t.indexOf('bug')>=0) return 'corrigir'; if(t.indexOf('edit')>=0||t.indexOf('muda')>=0||t.indexOf('mudar')>=0||t.indexOf('troca')>=0||t.indexOf('trocar')>=0) return 'editar'; if(t.indexOf('adicion')>=0||t.indexOf('inclu')>=0||t.indexOf('coloca')>=0) return 'adicionar'; return 'criar'; }",
-"async function enviarParaKAI(){ var input=document.getElementById('prompt'); var texto=input.value.trim(); if(!texto||!projetoAtual) return; addMsg(texto,true); input.value=''; var acao=detectarAcao(texto); addMsg('K-AI ('+acao+') pensando com Gemini + GROQ + Pollinations via Supabase...'); try{ var arquivos=await window.KAI.gerar(texto, projetoAtual.nome, projetoAtual.arquivos, acao); projetoAtual.arquivos=arquivos; projetoAtual.desc=texto; var idx=projetos.findIndex(function(p){return p.nome===projetoAtual.nome;}); if(idx>=0) projetos[idx]=projetoAtual; else projetos.push(projetoAtual); localStorage.setItem('kai_projetos',JSON.stringify(projetos)); render(); atualizarPreview(); addMsg('Pronto! ('+acao+') Arquivos: '+arquivos.map(function(f){return f.path;}).join(', ')+' - Veja no Preview e clique em Publicar.'); }catch(e){ addMsg('Erro: '+e.message); } }",
-"async function githubCommitDireto(path, content, message){ var token=await garantirToken(); if(!token) throw new Error('Sem REPO_TOKEN'); var sha=null; var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}}); if(get.ok){ var j=await get.json(); sha=j.sha; } var res=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:message,content:btoa(unescape(encodeURIComponent(content))),sha:sha||undefined,branch:'main'})}); if(!res.ok) throw new Error('GitHub '+res.status); }",
-"async function githubCommit(path, content, message){ try{ var r=await fetch(window.KAI_BACKEND_PUBLICAR||window.SUPABASE_URL+'/functions/v1/publish',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.SUPABASE_ANON_KEY,apikey:window.SUPABASE_ANON_KEY},body:JSON.stringify({path:path, content:content, message:message})}); if(r.ok) return; throw new Error('backend '+r.status); }catch(e){ return githubCommitDireto(path, content, message); } }",
-"async function publicarProjeto(i){ var p=projetos[i]; document.getElementById('status').innerText='Publicando '+p.nome+'...'; try{ for(var k=0;k<p.arquivos.length;k++){ await githubCommit(BASE+p.nome+'/'+p.arquivos[k].path, p.arquivos[k].content, 'K-AI App: publicar '+p.nome+' - '+p.arquivos[k].path); } document.getElementById('status').innerText='Publicado! kai-app/projetos/'+p.nome+'/'; alert('Publicado! https://github.com/'+OWNER+'/'+REPO+'/tree/main/kai-app/projetos/'+p.nome); }catch(e){ alert('Erro: '+e.message); } }",
-"async function publicarTudo(){ if(!projetos.length){alert('Crie um projeto primeiro');return;} for(var i=0;i<projetos.length;i++) await publicarProjeto(i); }"
-    ].join('\n');
-    var manifestJson=JSON.stringify({name:'K-AI App',short_name:'K-AI',start_url:'index.html',display:'standalone',background_color:'#0b0714',theme_color:'#0b0714',icons:[{src:'icon.png',sizes:'512x512',type:'image/png'}]},null,2);
-    var readme='# K-AI App - Bolt-like com Supabase\n\nGemini + GROQ + Pollinations juntos via Supabase Edge Functions\n\n## Backend Supabase\n- POST /functions/v1/k-ai -> Gemini planeja + GROQ codifica + Pollinations imagem/texto\n- POST /functions/v1/publish -> commita no GitHub com GH_TOKEN / REPO_TOKEN\n\n## Secrets (Supabase Dashboard > Edge Functions > Secrets)\nGEMINI_API_KEY / GROQ_API_KEY / GH_TOKEN / REPO_TOKEN\n\n## Deploy das funcoes\nsupabase link --project-ref vbckzfvqarcjadqxmdqc\nsupabase functions deploy k-ai\nsupabase functions deploy publish\n\n## Tabelas\nVer supabase/migrations/criar_tabelas.sql\n';
-    var sqlMig=[
-'-- K-AI App - Tabelas Supabase',
-'create table if not exists public.kai_projetos (id uuid default gen_random_uuid() primary key, nome text not null, descricao text, arquivos jsonb default \'[]\'::jsonb, created_at timestamptz default now());',
-'create table if not exists public.kai_mensagens (id uuid default gen_random_uuid() primary key, projeto_id uuid references public.kai_projetos(id) on delete cascade, papel text, conteudo text, created_at timestamptz default now());',
-'alter table public.kai_projetos enable row level security;',
-'alter table public.kai_mensagens enable row level security;',
-"create policy \"leitura publica projetos\" on public.kai_projetos for select using (true);",
-"create policy \"escrita publica projetos\" on public.kai_projetos for insert with check (true);",
-"create policy \"update publica projetos\" on public.kai_projetos for update using (true);",
-"create policy \"leitura publica mensagens\" on public.kai_mensagens for select using (true);",
-"create policy \"escrita publica mensagens\" on public.kai_mensagens for insert with check (true);"
-    ].join('\n');
-    var edgeKai=[
+"window.KAI_BACKEND_PUBLICAR=window.SUPABASE_URL+'/functions/v1/publish';",
+""
+].join('\n');
+var kAiJs=[
+"// K-AI tipo Bolt - Gemini planeja + GROQ codifica + Pollinations - via Supabase Edge Functions - SEM CHAVE SECRETA NO FRONT",
+"window.KAI={imagemPollinations:function(prompt){return 'https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt+' app moderno')+'?width=1024&height=512&seed='+Math.floor(Math.random()*99999)+'&nologo=true';},",
+"chamarSupabase:async function(funcao,corpo){var r=await fetch(window.SUPABASE_URL+'/functions/v1/'+funcao,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.SUPABASE_ANON_KEY,apikey:window.SUPABASE_ANON_KEY},body:JSON.stringify(corpo)});if(!r.ok)throw new Error(funcao+' '+r.status+' '+(await r.text()).slice(0,300));return await r.json();},",
+"extrairArquivos:function(texto,nomeProjeto){function pegar(lang){var m=texto.match(new RegExp('```'+lang+'\\\\s*([\\\\s\\\\S]*?)```','i'));return m?m[1].trim():null;}var html=pegar('html'),css=pegar('css'),js=pegar('js');if(!html){html='<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>'+nomeProjeto+'</title><link rel=\"stylesheet\" href=\"style.css\"></head><body><header style=\"background:#2563eb;color:#fff;padding:20px\"><h1>'+nomeProjeto+'</h1></header><main style=\"padding:20px;font-family:Arial\"><h2>App de Vendas</h2><p>'+String(texto||'').slice(0,800)+'</p><div id=\"produtos\"></div><button style=\"background:#22c55e;color:#fff;border:0;padding:14px 20px;border-radius:12px;font-size:16px\" onclick=\"comprar()\">Comprar agora</button><p id=\"msg\"></p></main><img src=\"'+this.imagemPollinations(nomeProjeto)+'\" style=\"width:100%;border-radius:12px\"><script src=\"app.js\"></scr'+'ipt></body></html>';}if(!css)css='body{font-family:Arial;margin:0;background:#f8fafc} button{cursor:pointer}';if(!js)js='var carrinho=0; function comprar(){carrinho++; document.getElementById(\"msg\").innerText=\"Adicionado! Carrinho: \"+carrinho+\" itens\";} console.log(\"K-AI '+nomeProjeto+'\");';return [{path:'index.html',content:html},{path:'style.css',content:css},{path:'app.js',content:js}];},",
+"aplicarEdicao:function(atuais,texto,nomeProjeto){var novos=this.extrairArquivos(texto,nomeProjeto);var mapa={};atuais.forEach(function(f){mapa[f.path]=f;});novos.forEach(function(f){mapa[f.path]=f;});return Object.keys(mapa).map(function(k){return mapa[k];});},",
+"templateLocal:function(prompt,nomeProjeto){return this.extrairArquivos('APP FUNCIONAL: '+prompt,nomeProjeto);},",
+"gerar:async function(prompt,nomeProjeto,arquivosAtuais,acao){try{var j=await this.chamarSupabase('k-ai',{prompt:prompt,nomeProjeto:nomeProjeto,arquivosAtuais:arquivosAtuais||[],acao:acao||'criar'});if(j&&j.texto){if((acao==='editar'||acao==='corrigir'||acao==='adicionar'||acao==='melhorar'||acao==='remover')&&arquivosAtuais&&arquivosAtuais.length)return this.aplicarEdicao(arquivosAtuais,j.texto,nomeProjeto);return this.extrairArquivos(j.texto,nomeProjeto);}if(j&&j.arquivos)return j.arquivos;throw new Error('resposta vazia');}catch(e){console.warn('K-AI Supabase offline, template local:',e.message);return this.templateLocal(prompt,nomeProjeto);}}",
+"};",
+""
+].join('\n');
+var appJs=[
+"var OWNER='sistemak',REPO='korvil-app2',BASE='kai-app/projetos/';",
+"var projetos=[]; try{projetos=JSON.parse(localStorage.getItem('kai_projetos')||'[]');}catch(e){projetos=[];}",
+"var projetoAtual=null,abaAtual='preview',arquivoAtual='index.html',deferredPrompt=null;",
+"function $ (id){return document.getElementById(id);}",
+"function irParaApp(){$('telaHome').style.display='none';$('telaApp').style.display='flex';renderProjetos();if(!projetoAtual && projetos.length)abrirProjeto(0);}",
+"function voltarHome(){$('telaApp').style.display='none';$('telaHome').style.display='block';renderHome();}",
+"function usarExemplo(t){$('promptHome').value=t;criarDoHome();}",
+"function criarDoHome(){var t=$('promptHome').value.trim();if(!t){$('promptHome').focus();return;}var nome='projeto-'+Date.now();projetoAtual={nome:nome,desc:t,arquivos:[],msgs:[]};projetos.unshift(projetoAtual);salvar();irParaApp();addMsg('Ola! Sou o K-AI. Vou construir: '+t);enviarTexto(t,true);}",
+"function novoProjetoPrompt(){var nome=prompt('Nome do projeto? Ex: app-de-vendas');if(!nome)return;projetoAtual={nome:nome.toLowerCase().replace(/[^a-z0-9-]/g,'-'),desc:'Criado pelo K-AI App',arquivos:[],msgs:[]};projetos.unshift(projetoAtual);salvar();renderProjetos();$('chatTitulo').innerText='Projeto: '+projetoAtual.nome;addMsg('Projeto '+projetoAtual.nome+' criado. O que voce quer construir?');}",
+"function salvar(){try{localStorage.setItem('kai_projetos',JSON.stringify(projetos));}catch(e){}}",
+"function renderHome(){var el=$('listaHome');if(!projetos.length){el.innerHTML='<p style=\"color:#aaa\">Nenhum projeto ainda. Escreva acima e clique em Build now.</p>';return;}el.innerHTML=projetos.map(function(p,i){return '<div class=\"card\" style=\"display:inline-block;width:280px;margin:8px;vertical-align:top\"><h4>'+p.nome+'</h4><p>'+p.desc.slice(0,80)+'</p><button onclick=\"abrirDoHome('+i+')\">Abrir no K-AI</button><button onclick=\"publicarProjeto('+i+')\">Publicar</button></div>';}).join('');}",
+"function abrirDoHome(i){projetoAtual=projetos[i];irParaApp();abrirProjeto(i);}",
+"function renderProjetos(){var q=($('buscaProjeto').value||'').toLowerCase();var el=$('listaProjetos');var lista=projetos.filter(function(p){return p.nome.toLowerCase().indexOf(q)>=0||p.desc.toLowerCase().indexOf(q)>=0;});if(!lista.length){el.innerHTML='<p style=\"color:#888\">Nenhum projeto.</p>';return;}el.innerHTML=lista.map(function(p){var idx=projetos.indexOf(p);return '<div class=\"card '+(projetoAtual&&projetoAtual.nome===p.nome?'active':'')+'\" onclick=\"abrirProjeto('+idx+')\"><h4>'+p.nome+'</h4><p>'+p.desc.slice(0,80)+'</p><p>'+p.arquivos.length+' arquivos</p><button onclick=\"event.stopPropagation();abrirProjeto('+idx+')\">Abrir</button><button onclick=\"event.stopPropagation();publicarProjeto('+idx+')\">Publicar</button><button class=\"del\" onclick=\"event.stopPropagation();excluirProjeto('+idx+')\">Excluir</button></div>';}).join('');}",
+"function excluirProjeto(i){if(!confirm('Excluir '+projetos[i].nome+'?'))return;projetos.splice(i,1);salvar();renderProjetos();renderHome();if(projetoAtual&&projetos.indexOf(projetoAtual)<0)projetoAtual=null;}",
+"function abrirProjeto(i){projetoAtual=projetos[i];if(!projetoAtual)return;$('chatTitulo').innerText='Projeto: '+projetoAtual.nome;$('chatProjetoNome').innerText=' - '+projetoAtual.arquivos.length+' arquivos';$('msgs').innerHTML='';(projetoAtual.msgs||[]).forEach(function(m){addMsg(m.texto,m.me,true);});if(!projetoAtual.msgs||!projetoAtual.msgs.length)addMsg('Projeto '+projetoAtual.nome+' aberto. O que quer fazer? Criar, editar, corrigir, adicionar, refazer, melhorar?');renderProjetos();atualizarPreview();}",
+"function addMsg(t,me,jaSalvo){var d=document.createElement('div');d.className='msg'+(me?' me':' ai');d.innerText=t;$('msgs').appendChild(d);$('msgs').scrollTop=99999;if(!jaSalvo&&projetoAtual){projetoAtual.msgs=projetoAtual.msgs||[];projetoAtual.msgs.push({texto:t,me:!!me});salvar();}}",
+"function detectarAcao(texto){var t=texto.toLowerCase();if(t.indexOf('corrige')>=0||t.indexOf('corrigir')>=0||t.indexOf('erro')>=0||t.indexOf('bug')>=0||t.indexOf('quebrou')>=0||t.indexOf('nao funciona')>=0)return 'corrigir';if(t.indexOf('refaz')>=0||t.indexOf('refazer')>=0||t.indexOf('recria')>=0||t.indexOf('do zero')>=0)return 'refazer';if(t.indexOf('melhora')>=0||t.indexOf('melhorar')>=0||t.indexOf('mais bonito')>=0)return 'melhorar';if(t.indexOf('edit')>=0||t.indexOf('muda')>=0||t.indexOf('mudar')>=0||t.indexOf('troca')>=0||t.indexOf('trocar')>=0||t.indexOf('deixa')>=0)return 'editar';if(t.indexOf('adicion')>=0||t.indexOf('inclu')>=0||t.indexOf('coloca')>=0||t.indexOf('cria um botao')>=0)return 'adicionar';if(t.indexOf('remove')>=0||t.indexOf('remover')>=0||t.indexOf('tira')>=0||t.indexOf('exclu')>=0)return 'remover';return 'criar';}",
+"function mostrarAba(aba){abaAtual=aba;$('tabPrev').className='tab'+(aba==='preview'?' active':'');$('tabCode').className='tab'+(aba==='codigo'?' active':'');$('painelPreview').style.display=(aba==='preview'?'block':'none');$('painelCodigo').style.display=(aba==='codigo'?'flex':'none');if(aba==='codigo')listarArquivos();atualizarPreview();}",
+"function listarArquivos(){if(!projetoAtual)return;var el=$('listaArquivos');el.innerHTML=projetoAtual.arquivos.map(function(f){return '<button onclick=\"verArquivo(\\''+f.path+'\\')\">'+f.path+'</button>';}).join(' ');verArquivo(arquivoAtual);}",
+"function verArquivo(path){if(!projetoAtual)return;arquivoAtual=path;var f=projetoAtual.arquivos.find(function(x){return x.path===path;});if(f)$('codigoAtual').textContent=f.content;}",
+"function copiarCodigo(){var t=$('codigoAtual').textContent;if(navigator.clipboard)navigator.clipboard.writeText(t);alert('Copiado!');}",
+"function baixarProjeto(){if(!projetoAtual)return;var html=projetoAtual.arquivos.find(function(f){return f.path==='index.html';});if(!html)return;var blob=new Blob([html.content],{type:'text/html'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=projetoAtual.nome+'.html';a.click();}",
+"function atualizarPreview(){if(!projetoAtual||!projetoAtual.arquivos.length){$('previewVazio').style.display='flex';$('previewFrame').src='about:blank';return;}$('previewVazio').style.display='none';var idx=projetoAtual.arquivos.find(function(f){return f.path==='index.html';});if(!idx)return;var html=idx.content;var css=projetoAtual.arquivos.find(function(f){return f.path==='style.css';});var js=projetoAtual.arquivos.find(function(f){return f.path==='app.js';});var completo=html;if(css)completo=completo.replace('</head>','<style>'+css.content+'</style></head>');if(js)completo=completo.replace('</body>','<script>'+js.content.replace(/<\\/script>/g,'')+'</scr'+'ipt></body>');var blob=new Blob([completo],{type:'text/html'});$('previewFrame').src=URL.createObjectURL(blob);}",
+"function rapido(t){$('prompt').value=t;enviarParaKAI();}",
+"async function enviarTexto(texto,jaMostrou){var acao=detectarAcao(texto);$('acaoDetectada').innerText='A\u00e7\u00e3o: '+acao;if(!jaMostrou)addMsg(texto,true);addMsg('K-AI ('+acao+') construindo com Gemini + GROQ + Pollinations via Supabase...');$('status').innerText='Construindo...';try{var arquivos=await window.KAI.gerar(texto,projetoAtual.nome,projetoAtual.arquivos,acao);projetoAtual.arquivos=arquivos;projetoAtual.desc=texto;var idx=projetos.findIndex(function(p){return p.nome===projetoAtual.nome;});if(idx>=0)projetos[idx]=projetoAtual;else projetos.unshift(projetoAtual);salvar();renderProjetos();renderHome();atualizarPreview();listarArquivos();$('status').innerText='Pronto';addMsg('Pronto! ('+acao+') Arquivos: '+arquivos.map(function(f){return f.path;}).join(', ')+' - Veja no Preview, no C\u00f3digo, edite pedindo no chat, e clique em Publicar.');}catch(e){$('status').innerText='Erro';addMsg('Erro: '+e.message);}}",
+"async function enviarParaKAI(){var input=$('prompt');var texto=input.value.trim();if(!texto)return;if(!projetoAtual){novoProjetoPrompt();if(!projetoAtual)return;}input.value='';await enviarTexto(texto,false);}",
+"$('prompt').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarParaKAI();}});",
+"$('prompt').addEventListener('input',function(){var t=$('prompt').value;if(t)$('acaoDetectada').innerText='A\u00e7\u00e3o: '+detectarAcao(t);});",
+"async function garantirToken(){var t=localStorage.getItem('REPO_TOKEN')||'';if(!t){t=prompt('Cole REPO_TOKEN (1 vez, so se Supabase offline):');if(t)localStorage.setItem('REPO_TOKEN',t.trim());}return localStorage.getItem('REPO_TOKEN')||'';}",
+"async function githubCommitDireto(path,content,message){var token=await garantirToken();if(!token)throw new Error('Sem REPO_TOKEN');var sha=null;var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});if(get.ok){var j=await get.json();sha=j.sha;}var res=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:message,content:btoa(unescape(encodeURIComponent(content))),sha:sha||undefined,branch:'main'})});if(!res.ok)throw new Error('GitHub '+res.status);}",
+"async function githubCommit(path,content,message){try{var r=await fetch(window.SUPABASE_URL+'/functions/v1/publish',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.SUPABASE_ANON_KEY,apikey:window.SUPABASE_ANON_KEY},body:JSON.stringify({path:path,content:content,message:message})});if(r.ok)return;throw new Error('backend '+r.status);}catch(e){return githubCommitDireto(path,content,message);}}",
+"async function publicarProjeto(i){var p=projetos[i];if(!p||!p.arquivos.length){alert('Projeto sem arquivos');return;}$('status').innerText='Publicando '+p.nome+'...';try{for(var k=0;k<p.arquivos.length;k++){await githubCommit(BASE+p.nome+'/'+p.arquivos[k].path,p.arquivos[k].content,'K-AI App: publicar '+p.nome+' - '+p.arquivos[k].path);}$('status').innerText='Publicado! kai-app/projetos/'+p.nome+'/';alert('Publicado! https://github.com/'+OWNER+'/'+REPO+'/tree/main/kai-app/projetos/'+p.nome);}catch(e){alert('Erro: '+e.message);}}",
+"async function publicarAtual(){if(!projetoAtual)return;var idx=projetos.indexOf(projetoAtual);await publicarProjeto(idx);}",
+"async function publicarTudo(){if(!projetos.length){alert('Crie um projeto primeiro');return;}for(var i=0;i<projetos.length;i++)await publicarProjeto(i);}",
+"renderHome();renderProjetos();",
+""
+].join('\n');
+var manifestJson=JSON.stringify({name:'K-AI App',short_name:'K-AI',start_url:'index.html',display:'standalone',background_color:'#0b0714',theme_color:'#0b0714',icons:[{src:'icon.png',sizes:'512x512',type:'image/png'}]},null,2);
+var readme='# K-AI App - Clone Bolt com Supabase\n\nGemini + GROQ + Pollinations juntos via Supabase Edge Functions\n\n## Backend\n- POST /functions/v1/k-ai\n- POST /functions/v1/publish\n\n## Secrets (Supabase Dashboard > Edge Functions > Secrets)\nGEMINI_API_KEY / GROQ_API_KEY / GH_TOKEN / REPO_TOKEN\n\n## Deploy (se precisar re-deployar)\nVia Editor no Supabase ou: supabase functions deploy k-ai / publish\n';
+var sqlMig=['-- K-AI App - Tabelas Supabase','create table if not exists public.kai_projetos (id uuid default gen_random_uuid() primary key, nome text not null, descricao text, arquivos jsonb default \'[]\'::jsonb, created_at timestamptz default now());','create table if not exists public.kai_mensagens (id uuid default gen_random_uuid() primary key, projeto_id uuid references public.kai_projetos(id) on delete cascade, papel text, conteudo text, created_at timestamptz default now());','alter table public.kai_projetos enable row level security;','alter table public.kai_mensagens enable row level security;','create policy "leitura publica projetos" on public.kai_projetos for select using (true);','create policy "escrita publica projetos" on public.kai_projetos for insert with check (true);','create policy "update publica projetos" on public.kai_projetos for update using (true);','create policy "leitura publica mensagens" on public.kai_mensagens for select using (true);','create policy "escrita publica mensagens" on public.kai_mensagens for insert with check (true);'].join('\n');
+var edgeKai=[
 "// Supabase Edge Function k-ai - Deno - Secrets: GEMINI_API_KEY, GROQ_API_KEY",
 "import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';",
 "serve(async (req) => {",
 "  if (req.method === 'OPTIONS') return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } });",
-'  try {',
+"  try {",
 "    const { prompt, nomeProjeto, arquivosAtuais, acao } = await req.json();",
 "    if (!prompt) return new Response(JSON.stringify({ error: 'sem prompt' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });",
 "    const arquivosTxt = (arquivosAtuais || []).map((f) => 'ARQUIVO ' + f.path + ':\\n' + (f.content || '').slice(0, 4000)).join('\\n\\n');",
-"    const sistema = 'Voce e o K-AI, um gerador de apps tipo Bolt. Responda SEMPRE com 3 blocos: ```html ... ``` depois ```css ... ``` depois ```js ... ```. HTML completo, bonito, responsivo, tema escuro roxo #0b0714 / #a855f7, botoes funcionais em JS puro. Se a acao for editar/corrigir/adicionar, devolva os arquivos COMPLETOS ja editados, nao so o trecho. Nao explique fora dos blocos.';",
-"    const usuario = 'Acao: ' + (acao || 'criar') + ' | Projeto: ' + (nomeProjeto || 'meu-app') + ' | Pedido: ' + prompt + (arquivosTxt ? ' | Arquivos atuais:\\n' + arquivosTxt : '');",
-'    let texto = "";',
+"    const sistema = 'Voce e o K-AI, gerador de apps tipo Bolt.new. Responda SEMPRE com 3 blocos: ```html ... ``` depois ```css ... ``` depois ```js ... ```. REGRAS OBRIGATORIAS: 1) HTML completo e funcional, nao so texto do pedido. 2) Crie conteudo REAL do pedido: se pedir app de vendas, crie produtos com nome, preco, botao Comprar, carrinho com contador, total. Se pedir pizzaria, cardapio real. Se pedir tarefas, lista funcional com adicionar/concluir/excluir. Se pedir dashboard, numeros e tabela real. 3) CSS bonito moderno, tema claro ou escuro, responsivo. 4) JS puro funcional, sem bibliotecas externas, todos os botoes funcionam. 5) Se acao for editar/corrigir/adicionar/melhorar/remover/refazer, devolva os arquivos COMPLETOS ja editados, nao so trecho, e nao perca o que ja existia. 6) Nunca devolva so o texto do pedido como titulo. 7) Nao explique fora dos blocos.';",
+"    const usuario = 'Acao: ' + (acao || 'criar') + ' | Projeto: ' + (nomeProjeto || 'meu-app') + ' | Pedido do usuario: ' + prompt + (arquivosTxt ? ' | Arquivos atuais (edite eles, nao recrie do zero se for editar):\\n' + arquivosTxt : '');",
+"    let texto = '';",
 "    const groqKey = Deno.env.get('GROQ_API_KEY');",
-'    if (groqKey) {',
-"      try { const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + groqKey }, body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }], temperature: 0.7, max_tokens: 6000 }) }); if (r.ok) { const j = await r.json(); texto = j.choices?.[0]?.message?.content || ''; } } catch (e) { console.log('GROQ falhou', e.message); }",
-'    }',
+"    if (groqKey) {",
+"      try { const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + groqKey }, body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }], temperature: 0.7, max_tokens: 8000 }) }); if (r.ok) { const j = await r.json(); texto = j.choices?.[0]?.message?.content || ''; } else { console.log('GROQ status', r.status, await r.text()); } } catch (e) { console.log('GROQ falhou', e.message); }",
+"    }",
 "    const geminiKey = Deno.env.get('GEMINI_API_KEY');",
-'    if (!texto && geminiKey) {',
-"      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: sistema + '\\n' + usuario }] }] }) }); if (!r.ok) throw new Error('Gemini ' + r.status); const j = await r.json(); texto = j.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';",
-'    }',
-'    // Pollinations texto sem chave - 3o fallback',
-'    if (!texto) {',
-"      try { const r = await fetch('https://text.pollinations.ai/' + encodeURIComponent(usuario.slice(0, 2000)), { headers: { 'Content-Type': 'application/json' } }); if (r.ok) texto = await r.text(); } catch (e) { console.log('Pollinations texto falhou', e.message); }",
-'    }',
+"    if (!texto && geminiKey) {",
+"      try { const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: sistema + '\\n' + usuario }] }] }) }); if (!r.ok) console.log('Gemini status', r.status, await r.text()); else { const j = await r.json(); texto = j.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || ''; } } catch (e) { console.log('Gemini falhou', e.message); }",
+"    }",
+"    if (!texto) {",
+"      try { const r = await fetch('https://text.pollinations.ai/' + encodeURIComponent(usuario.slice(0, 2000))); if (r.ok) texto = await r.text(); } catch (e) { console.log('Pollinations texto falhou', e.message); }",
+"    }",
 "    if (!texto) return new Response(JSON.stringify({ error: 'Nenhuma IA respondeu. Confira GEMINI_API_KEY / GROQ_API_KEY nos Secrets.' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });",
 "    return new Response(JSON.stringify({ texto }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });",
 "  } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }); }",
-'});'
-    ].join('\n');
-    var edgePublish=[
+"});",
+""
+].join('\n');
+var edgePublish=[
 "// Supabase Edge Function publish - Deno - Secrets: GH_TOKEN / REPO_TOKEN",
 "import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';",
 "serve(async (req) => {",
 "  if (req.method === 'OPTIONS') return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } });",
-'  try {',
+"  try {",
 "    const token = Deno.env.get('GH_TOKEN') || Deno.env.get('REPO_TOKEN');",
 "    if (!token) return new Response(JSON.stringify({ error: 'Sem GH_TOKEN / REPO_TOKEN no backend' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });",
 "    const { path, content, message } = await req.json();",
 "    const base = 'https://api.github.com/repos/sistemak/korvil-app2/contents/' + path.split('/').map(encodeURIComponent).join('/');",
-'    let sha = null; const get = await fetch(base, { headers: { Authorization: \'Bearer \' + token, Accept: \'application/vnd.github+json\' } }); if (get.ok) { const j = await get.json(); sha = j.sha; }',
+"    let sha = null; const get = await fetch(base, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' } }); if (get.ok) { const j = await get.json(); sha = j.sha; }",
 "    const put = await fetch(base, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: message || ('K-AI: ' + path), content: btoa(unescape(encodeURIComponent(content))), sha: sha || undefined, branch: 'main' }) });",
 "    if (!put.ok) return new Response(JSON.stringify({ error: await put.text() }), { status: put.status, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });",
 "    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });",
 "  } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }); }",
-'});'
-    ].join('\n');
-    var supaConfig='[functions.k-ai]\nverify_jwt = false\n\n[functions.publish]\nverify_jwt = false\n';
-    var deployMd='# Deploy Supabase\n\n1. Instale CLI: npm i -g supabase\n2. supabase login\n3. supabase link --project-ref vbckzfvqarcjadqxmdqc\n4. supabase functions deploy k-ai\n5. supabase functions deploy publish\n6. Confira Secrets em Dashboard > Edge Functions > Secrets: GEMINI_API_KEY, GROQ_API_KEY, GH_TOKEN, REPO_TOKEN\n7. Rode SQL em supabase/migrations/criar_tabelas.sql no SQL Editor\n\nNUNCA coloque sb_secret no front ou no GitHub. No front vai SO sb_publishable.\n';
-    await enviarArquivo('kai-app/index.html', indexHtml);
-    await enviarArquivo('kai-app/style.css', styleCss);
-    await enviarArquivo('kai-app/config.js', configJs);
-    await enviarArquivo('kai-app/k-ai.js', kAiJs);
-    await enviarArquivo('kai-app/app.js', appJs);
-    await enviarArquivo('kai-app/manifest.json', manifestJson);
-    await enviarArquivo('kai-app/README.md', readme);
-    await enviarArquivo('kai-app/supabase/migrations/criar_tabelas.sql', sqlMig);
-    await enviarArquivo('kai-app/supabase/functions/k-ai/index.ts', edgeKai);
-    await enviarArquivo('kai-app/supabase/functions/publish/index.ts', edgePublish);
-    await enviarArquivo('kai-app/supabase/config.toml', supaConfig);
-    await enviarArquivo('kai-app/supabase/DEPLOY.md', deployMd);
-    await enviarArquivo('kai-app/projetos/.gitkeep', 'Pasta mae dos projetos criados pelo K-AI App');
-    log('🎉 TUDO CRIADO COM SUCESSO!','ok');
-    log('Supabase: '+SUPA_URL,'ok');
-    log('Proximo passo: deploy das Edge Functions - ver kai-app/supabase/DEPLOY.md','warn');
-    log('Abra: https://github.com/sistemak/korvil-app2/tree/main/kai-app','ok');
-  }catch(e){ log('❌ ERRO: '+e.message,'err'); }
+"});",
+""
+].join('\n');
+var supaConfig='[functions.k-ai]\nverify_jwt = false\n\n[functions.publish]\nverify_jwt = false\n';
+var deployMd='# Deploy Supabase\n\nVia Editor: Edge Functions > Create new > k-ai / publish > colar codigo de kai-app/supabase/functions/*/index.ts > Deploy\n\nOu CLI: supabase login / link --project-ref vbckzfvqarcjadqxmdqc / functions deploy k-ai / publish\n\nNUNCA coloque sb_secret no front ou no GitHub. No front vai SO sb_publishable.\n';
+await enviarArquivo('kai-app/index.html',indexHtml);
+await enviarArquivo('kai-app/style.css',styleCss);
+await enviarArquivo('kai-app/config.js',configJs);
+await enviarArquivo('kai-app/k-ai.js',kAiJs);
+await enviarArquivo('kai-app/app.js',appJs);
+await enviarArquivo('kai-app/manifest.json',manifestJson);
+await enviarArquivo('kai-app/README.md',readme);
+await enviarArquivo('kai-app/supabase/migrations/criar_tabelas.sql',sqlMig);
+await enviarArquivo('kai-app/supabase/functions/k-ai/index.ts',edgeKai);
+await enviarArquivo('kai-app/supabase/functions/publish/index.ts',edgePublish);
+await enviarArquivo('kai-app/supabase/config.toml',supaConfig);
+await enviarArquivo('kai-app/supabase/DEPLOY.md',deployMd);
+await enviarArquivo('kai-app/projetos/.gitkeep','Pasta mae dos projetos criados pelo K-AI App');
+log('🎉 TUDO CRIADO COM SUCESSO! Clone Bolt K-AI App','ok');log('Supabase: '+SUPA_URL,'ok');log('Depois: re-deploye k-ai + publish via Via Editor no Supabase (copiar de kai-app/supabase/functions/)','warn');log('Abra: https://github.com/sistemak/korvil-app2/tree/main/kai-app','ok');
+}catch(e){log('❌ ERRO: '+e.message,'err');}
 }
-el('btnTestar').addEventListener('click', testar);
-el('btnCriar').addEventListener('click', criarTudo);
-window.testar=testar;
-window.criarTudo=criarTudo;
-log('MESTRE carregado - ATIVAR igual antes + Supabase. Cole o token e clique em ATIVAR.');
+el('btnTestar').addEventListener('click',testar); el('btnCriar').addEventListener('click',criarTudo);
+log('MESTRE carregado - ATIVAR igual antes + Clone Bolt K-AI App. Cole o token e clique em ATIVAR.');
 })();
-</script>
-</body>
-</html>
+</script></body></html>
