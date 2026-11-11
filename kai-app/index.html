@@ -1,13 +1,51 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>K-AI App</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0714"><link rel="stylesheet" href="style.css"></head>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K-AI App</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0714">
+<link rel="stylesheet" href="style.css"></head>
 <body>
-<header><div class="logo">K-<span>AI</span> App</div><div><button id="btnInstall" style="display:none">Instalar</button><button class="btn-pub" onclick="publicarTudo()">Publicar</button></div></header>
-<p class="sub">K-AI tipo Bolt - Gemini + GROQ + Pollinations - Supabase</p><div id="status">Pronto</div>
-<div style="display:flex;gap:8px"><button class="btn-new" style="flex:1" onclick="mostrarAba('preview')">Preview</button><button class="btn-new" style="flex:1;background:#333" onclick="mostrarAba('codigo')">Codigo</button></div>
-<button class="btn-new" onclick="criarNovoProjeto()">+ Criar Novo Projeto</button>
-<h3>Meus Projetos</h3><div id="lista"></div>
-<div id="painelPreview"><iframe id="previewFrame" style="width:100%;height:420px;border:1px solid #2e1a5e;border-radius:12px;background:#fff"></iframe></div>
-<div id="painelCodigo" style="display:none"><div id="listaArquivos"></div><pre id="codigoAtual" style="white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;max-height:400px;overflow:auto"></pre></div>
-<div id="chat"><div class="chat-top"><b id="chatTitulo">Novo Projeto</b><button onclick="fecharChat()">Fechar</button></div><div id="msgs"></div><div class="inputRow"><input id="prompt" placeholder="Ex: cria um app de vendas, edita o botao pra verde, corrige o erro..."><button onclick="enviarParaKAI()">Enviar</button></div><button class="btn-pub" style="width:100%;margin-top:10px" onclick="publicarTudo()">Publicar Projeto</button></div>
-<script src="config.js"></script><script src="k-ai.js"></script><script src="app.js"></script>
+<div id="telaHome" class="home">
+  <header class="top"><div class="logo">K-AI<span>.app</span></div><div class="topLinks"><span>Soluções</span><span>Recursos</span><span>Preço</span></div><div><button class="btnGhost" onclick="irParaApp()">Entrar</button><button class="btnBlue" onclick="irParaApp()">Começar</button></div></header>
+  <main class="hero">
+    <h1>O que você vai construir hoje?</h1>
+    <p class="heroSub">Crie apps e sites incríveis conversando com IA.</p>
+    <div class="promptBox">
+      <textarea id="promptHome" placeholder="Vamos construir um app de vendas..."></textarea>
+      <div class="promptRow"><button class="btnPlus" onclick="document.getElementById('promptHome').focus()">+</button><span class="plan">💡 Planejar</span><button class="btnBuild" onclick="criarDoHome()">Build now ➤</button></div>
+    </div>
+    <div class="exemplos">
+      <button onclick="usarExemplo('cria um app de vendas com botão verde e carrinho')">🛒 App de vendas</button>
+      <button onclick="usarExemplo('cria um site de pizzaria com cardápio e botão de pedido')">🍕 Pizzaria</button>
+      <button onclick="usarExemplo('cria um app de tarefas com lista, concluir e excluir')">✅ Tarefas</button>
+      <button onclick="usarExemplo('cria um dashboard de vendas com gráfico e total')">📊 Dashboard</button>
+    </div>
+  </main>
+  <h3 style="padding:0 20px">Meus Projetos</h3><div id="listaHome" style="padding:0 20px 40px"></div>
+</div>
+
+<div id="telaApp" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="logo">K-AI<span>.app</span></div>
+    <button class="btnNew" onclick="novoProjetoPrompt()">+ Novo Projeto</button>
+    <input id="buscaProjeto" placeholder="Buscar projeto..." oninput="renderProjetos()">
+    <div id="listaProjetos"></div>
+    <div class="sideFoot"><button onclick="voltarHome()">🏠 Início</button><button onclick="publicarTudo()">🚀 Publicar tudo</button></div>
+  </aside>
+  <section class="main">
+    <div class="tabs"><button id="tabPrev" class="tab active" onclick="mostrarAba('preview')">Preview</button><button id="tabCode" class="tab" onclick="mostrarAba('codigo')">Código</button><span id="status" class="status">Pronto</span><button class="btnPub" onclick="publicarAtual()">Publicar</button></div>
+    <div class="work">
+      <div class="chatPanel">
+        <div class="chatHead"><b id="chatTitulo">Novo Projeto</b><span id="chatProjetoNome"></span></div>
+        <div id="msgs"></div>
+        <div class="chatInput"><textarea id="prompt" placeholder="Descreva, peça pra criar, editar, corrigir, adicionar, refazer, melhorar... Ex: muda o botão pra verde"></textarea>
+        <div class="chatActions"><span id="acaoDetectada">Ação: criar</span><button onclick="enviarParaKAI()">Enviar ➤</button></div></div>
+        <div class="quick"><button onclick="rapido('corrige o erro e melhora o visual')">Corrigir erro</button><button onclick="rapido('melhora o visual, deixa mais bonito e moderno')">Melhorar visual</button><button onclick="rapido('adiciona um botão novo e uma seção nova')">Adicionar</button><button onclick="rapido('refaz tudo do zero, mais completo')">Refazer</button></div>
+      </div>
+      <div class="previewPanel">
+        <div id="painelPreview"><iframe id="previewFrame"></iframe><div id="previewVazio" class="vazio">Nenhum projeto aberto. Crie um projeto e peça pra IA construir.</div></div>
+        <div id="painelCodigo" style="display:none"><div class="fileBar"><div id="listaArquivos"></div><button onclick="copiarCodigo()">Copiar</button><button onclick="baixarProjeto()">Baixar .zip / .html</button></div><pre id="codigoAtual"></pre></div>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="config.js"></scr'+'ipt><script src="k-ai.js"></scr'+'ipt><script src="app.js"></scr'+'ipt>
 </body></html>
