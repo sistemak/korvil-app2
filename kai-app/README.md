@@ -2,8 +2,5 @@
 
 Mesmo K-AI do KORVIL - Pollinations + Gemini + GROQ
 
-- Página inicial: kai-app/index.html
-- Botão: + Criar Novo Projeto
-- Botão: 📲 Instalar App
-- Botão: 🚀 Publicar -> Commit real no GitHub
-- Projetos salvos em: kai-app/projetos/NOME-DO-PROJETO/
+Backend: POST /api/k-ai (GROQ + Gemini) e POST /api/publish (GH_TOKEN / REPO_TOKEN)
+Secrets: GEMINI_API_KEY / GROQ_API_KEY / GH_TOKEN / REPO_TOKEN
