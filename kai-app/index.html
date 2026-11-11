@@ -1,10 +1,279 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>K-AI App</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0714"><link rel="stylesheet" href="style.css"></head>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-AI App</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0714">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="K-AI">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#0b0714;color:#fff;padding:16px;padding-bottom:100px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.logo{font-size:26px;font-weight:900;white-space:nowrap}.logo span{color:#a855f7}
+.top{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+#btnInstall{background:#fff;color:#000;display:none}
+#btnInstall.pulse{animation:pulse 1.5s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.btn-pub{background:#22c55e;color:#000}
+.btn-new{background:#a855f7;color:#fff;width:100%;margin:16px 0;font-size:17px;padding:17px}
+.btn-install-big{background:#fff;color:#000;width:100%;padding:16px;font-size:16px;margin-bottom:12px;display:none}
+.sub{color:#b7a8d9;margin-top:6px;font-size:14px}
+#status{font-size:12px;color:#22c55e;margin-top:8px}
+.card{background:#1a1030;border:1px solid #2e1a5e;border-radius:16px;padding:16px;margin-bottom:12px}
+.card h3{margin-bottom:4px}.card p{color:#b7a8d9;font-size:13px}
+.card .row{display:flex;gap:8px;margin-top:12px}
+.open{background:#a855f7;color:#fff;flex:1}.pub{background:#22c55e;flex:1}
+#chat{position:fixed;inset:0;background:#0b0714;display:none;flex-direction:column;padding:16px;z-index:10}
+.chat-top{display:flex;justify-content:space-between;align-items:center}
+#msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.msg{background:#1a1030;padding:12px;border-radius:12px;max-width:92%;white-space:pre-wrap;font-size:14px}
+.msg.me{background:#a855f7;align-self:flex-end}
+.inputRow{display:flex;gap:8px}
+.inputRow input{flex:1;padding:14px;border-radius:12px;border:1px solid #333;background:#1a1030;color:#fff;font-size:15px}
+.inputRow button{background:#a855f7;color:#fff}
+#modalInstall{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.modal-box{background:#1a1030;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px}
+.modal-box h3{margin-bottom:10px}.modal-box p{color:#b7a8d9;font-size:14px;line-height:1.6;margin-bottom:10px}
+.modal-box b{color:#fff}
+</style>
+</head>
 <body>
-<header><div class="logo">K-<span>AI</span> App</div><div><button id="btnInstall" style="display:none">📲 Instalar</button><button class="btn-pub" onclick="publicarTudo()">🚀 Publicar</button></div></header>
-<p class="sub">Mesmo K-AI do KORVIL • Pollinations + Gemini + GROQ</p><div id="status">✅ Pronto</div>
+
+<header>
+<div class="logo">K-<span>AI</span> App</div>
+<div class="top">
+<button id="btnInstall">📲 Instalar App</button>
+<button class="btn-pub" onclick="publicarTudo()">🚀 Publicar</button>
+</div>
+</header>
+
+<p class="sub">Mesmo K-AI do KORVIL • Pollinations + Gemini + GROQ</p>
+<div id="status">✅ K-AI pronto</div>
+
+<button id="btnInstallBig" class="btn-install-big" onclick="instalarApp()">📲 Instalar o K-AI App no celular</button>
+
 <button class="btn-new" onclick="criarNovoProjeto()">+ Criar Novo Projeto</button>
-<h3>Meus Projetos</h3><div id="lista"></div>
-<div id="chat"><div class="chat-top"><b id="chatTitulo">Novo Projeto</b><button onclick="fecharChat()">Fechar</button></div><div id="msgs"></div><div class="inputRow"><input id="prompt" placeholder="Ex: cria um app de vendas..."><button onclick="enviarParaKAI()">Enviar</button></div><button class="btn-pub" style="width:100%;margin-top:10px" onclick="publicarTudo()">🚀 Publicar Projeto</button></div>
-<script src="config.js"></script><script src="k-ai.js"></script><script src="app.js"></script>
-</body></html>
+
+<h3>Meus Projetos</h3>
+<div id="lista"></div>
+
+<div id="chat">
+<div class="chat-top">
+<b id="chatTitulo">Novo Projeto</b>
+<button onclick="fecharChat()" style="background:#333;color:#fff">Fechar</button>
+</div>
+<div id="msgs"></div>
+<div class="inputRow">
+<input id="prompt" placeholder="Ex: cria um app de vendas...">
+<button onclick="enviarParaKAI()">Enviar</button>
+</div>
+<button class="btn-pub" style="width:100%;margin-top:10px;padding:15px" onclick="publicarTudo()">🚀 Publicar Projeto no GitHub</button>
+</div>
+
+<div id="modalInstall" onclick="fecharModalInstall(event)">
+<div class="modal-box">
+<h3>📲 Instalar o K-AI App</h3>
+<p id="installTexto"></p>
+<button onclick="fecharModalInstallForce()" style="background:#a855f7;color:#fff;width:100%">Entendi</button>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="k-ai.js"></script>
+<script>
+// ===== INSTALAR APP - PWA =====
+let deferredPrompt = null;
+let jaInstalado = false;
+
+// Detecta se já está instalado
+if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true){
+  jaInstalado = true;
+  document.getElementById("status").innerText = "✅ K-AI App já instalado no celular";
+} else {
+  // Mostra botão grande sempre, pra você clicar
+  document.getElementById("btnInstall").style.display = "block";
+  document.getElementById("btnInstallBig").style.display = "block";
+  document.getElementById("btnInstall").classList.add("pulse");
+}
+
+// Chrome / Android captura o evento de instalar
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("btnInstall").style.display = "block";
+  document.getElementById("btnInstallBig").style.display = "block";
+  document.getElementById("status").innerText = "📲 Pronto pra instalar no celular - clique em Instalar";
+});
+
+window.addEventListener('appinstalled', ()=>{
+  jaInstalado = true;
+  deferredPrompt = null;
+  document.getElementById("btnInstall").style.display = "none";
+  document.getElementById("btnInstallBig").style.display = "none";
+  document.getElementById("status").innerText = "✅ K-AI App instalado com sucesso!";
+  alert("✅ K-AI App instalado! Procure o ícone K-AI na sua tela inicial.");
+});
+
+async function instalarApp(){
+  // 1. Se já tem prompt do Chrome, instala direto
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if(choice.outcome === 'accepted'){
+      document.getElementById("status").innerText = "✅ Instalando...";
+    } else {
+      document.getElementById("status").innerText = "Instalação cancelada. Tente de novo.";
+    }
+    deferredPrompt = null;
+    return;
+  }
+
+  // 2. iPhone Safari - não tem prompt automático, mostra passo a passo
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+  if(isIOS){
+    document.getElementById("installTexto").innerHTML = "No seu iPhone:<br><br>1. Toque em <b>Compartilhar ⬆️</b> aqui embaixo<br>2. Role e toque em <b>Adicionar à Tela de Início</b><br>3. Toque em <b>Adicionar</b><br><br>Pronto! O ícone do K-AI vai aparecer na sua tela inicial como app.";
+    document.getElementById("modalInstall").style.display = "flex";
+    return;
+  }
+
+  // 3. Android sem prompt / outros navegadores
+  document.getElementById("installTexto").innerHTML = "No seu celular:<br><br>1. Toque nos <b>3 pontinhos ⋮</b> no canto do navegador<br>2. Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b><br>3. Toque em <b>Instalar</b><br><br>Se não aparecer, abre esse link no <b>Chrome</b> e tenta de novo.";
+  document.getElementById("modalInstall").style.display = "flex";
+}
+
+function fecharModalInstall(e){
+  if(e.target.id === "modalInstall") document.getElementById("modalInstall").style.display = "none";
+}
+function fecharModalInstallForce(){
+  document.getElementById("modalInstall").style.display = "none";
+}
+document.getElementById("btnInstall").onclick = instalarApp;
+
+// Registra Service Worker pra permitir instalar - cria na hora se não existir
+if('serviceWorker' in navigator){
+  const swCode = "self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{self.clients.claim()});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});";
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+// ===== K-AI APP - LÓGICA =====
+const OWNER = "sistemak";
+const REPO = "korvil-app2";
+const BASE = "kai-app/projetos/";
+let projetos = JSON.parse(localStorage.getItem("kai_projetos")||"[]");
+let projetoAtual = null;
+
+async function garantirToken(){
+  let t = window.REPO_TOKEN || localStorage.getItem("REPO_TOKEN") || "";
+  if(!t){
+    t = prompt("Cole REPO_TOKEN (1 vez, fica salvo no celular):");
+    if(t){ localStorage.setItem("REPO_TOKEN", t.trim()); window.REPO_TOKEN = t.trim(); }
+  }
+  return window.REPO_TOKEN;
+}
+
+function render(){
+  const el = document.getElementById("lista");
+  if(!projetos.length){ el.innerHTML = "<p style='color:#888'>Nenhum projeto ainda. Clique em + Criar Novo Projeto</p>"; return; }
+  el.innerHTML = projetos.map((p,i)=>`
+    <div class="card">
+      <h3>${p.nome}</h3><p>${p.desc} • ${p.arquivos.length} arquivos</p>
+      <div class="row">
+        <button class="open" onclick="abrirProjeto(${i})">Abrir</button>
+        <button class="pub" onclick="publicarProjeto(${i})">🚀 Publicar</button>
+      </div>
+    </div>`).join("");
+}
+render();
+
+function criarNovoProjeto(){
+  const nome = prompt("Nome do projeto? Ex: app-de-vendas");
+  if(!nome) return;
+  projetoAtual = { nome: nome.toLowerCase().replace(/[^a-z0-9-]/g,'-'), desc: "Criado pelo K-AI App", arquivos: [] };
+  document.getElementById("chatTitulo").innerText = "Criando: " + projetoAtual.nome;
+  document.getElementById("chat").style.display = "flex";
+  addMsg("Olá! Sou o K-AI do KORVIL. O que você quer que eu crie em " + projetoAtual.nome + "?");
+}
+function fecharChat(){ document.getElementById("chat").style.display = "none"; }
+function abrirProjeto(i){
+  projetoAtual = projetos[i];
+  document.getElementById("chatTitulo").innerText = "Projeto: " + projetoAtual.nome;
+  document.getElementById("chat").style.display = "flex";
+  addMsg("Projeto " + projetoAtual.nome + " aberto. O que quer mudar?");
+}
+function addMsg(t, me=false){
+  const d = document.createElement("div");
+  d.className = "msg" + (me ? " me" : "");
+  d.innerText = t;
+  document.getElementById("msgs").appendChild(d);
+  document.getElementById("msgs").scrollTop = 9999;
+}
+
+async function enviarParaKAI(){
+  const input = document.getElementById("prompt");
+  const texto = input.value.trim(); if(!texto) return;
+  addMsg(texto, true); input.value = "";
+  addMsg("K-AI pensando com Gemini + GROQ + Pollinations... Gerando seu app...");
+
+  let arquivos;
+  if(window.KAI && window.KAI.gerar){
+    arquivos = await window.KAI.gerar(texto, projetoAtual.nome);
+  } else {
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${projetoAtual.nome}</title><link rel="stylesheet" href="style.css"></head><body><h1>${projetoAtual.nome}</h1><p>Criado pelo K-AI App - ${texto}</p><script src="app.js"><\/script></body></html>`;
+    const css = `body{background:#0b0714;color:#fff;font-family:Arial;padding:20px} h1{color:#a855f7}`;
+    const js = `console.log("Projeto ${projetoAtual.nome} criado pelo K-AI"); alert("Bem-vindo ao ${projetoAtual.nome}");`;
+    arquivos = [{path:"index.html",content:html},{path:"style.css",content:css},{path:"app.js",content:js}];
+  }
+
+  projetoAtual.arquivos = arquivos;
+  projetoAtual.desc = texto;
+  const idx = projetos.findIndex(p=>p.nome===projetoAtual.nome);
+  if(idx>=0) projetos[idx]=projetoAtual; else projetos.push(projetoAtual);
+  localStorage.setItem("kai_projetos", JSON.stringify(projetos));
+  render();
+  addMsg(`✅ Pronto! Criei 3 arquivos em kai-app/projetos/${projetoAtual.nome}/\n- index.html\n- style.css\n- app.js\n\nClica em 🚀 Publicar pra fazer commit real no GitHub.`);
+}
+
+async function githubCommit(path, content, message){
+  const token = await garantirToken();
+  if(!token) throw new Error("Sem REPO_TOKEN");
+  let sha = null;
+  const get = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`, {headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json"}});
+  if(get.ok){ const j = await get.json(); sha = j.sha; }
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`, {
+    method:"PUT",
+    headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json", "Content-Type":"application/json"},
+    body: JSON.stringify({message:message, content:btoa(unescape(encodeURIComponent(content))), sha:sha||undefined, branch:"main"})
+  });
+  if(!res.ok) throw new Error("GitHub " + res.status);
+}
+
+async function publicarProjeto(i){
+  const p = projetos[i];
+  document.getElementById("status").innerText = "🚀 Publicando " + p.nome + "...";
+  try{
+    for(const f of p.arquivos){
+      await githubCommit(BASE + p.nome + "/" + f.path, f.content, `K-AI App: publicar ${p.nome} - ${f.path}`);
+    }
+    document.getElementById("status").innerText = "✅ Publicado! kai-app/projetos/" + p.nome + "/";
+    alert("✅ Publicado!\nhttps://github.com/" + OWNER + "/" + REPO + "/tree/main/kai-app/projetos/" + p.nome);
+  }catch(e){ alert("Erro: " + e.message); }
+}
+async function publicarTudo(){
+  if(!projetos.length){ alert("Crie um projeto primeiro"); return; }
+  for(let i=0;i<projetos.length;i++) await publicarProjeto(i);
+}
+</script>
+<script src="app.js"></script>
+</body>
+</html>
