@@ -2,9 +2,12 @@
 <html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>K-AI App</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0714"><link rel="stylesheet" href="style.css"></head>
 <body>
 <header><div class="logo">K-<span>AI</span> App</div><div><button id="btnInstall" style="display:none">Instalar</button><button class="btn-pub" onclick="publicarTudo()">Publicar</button></div></header>
-<p class="sub">Mesmo K-AI do KORVIL - Pollinations + Gemini + GROQ</p><div id="status">Pronto</div>
+<p class="sub">K-AI tipo Bolt - Gemini + GROQ + Pollinations - Supabase</p><div id="status">Pronto</div>
+<div style="display:flex;gap:8px"><button class="btn-new" style="flex:1" onclick="mostrarAba('preview')">Preview</button><button class="btn-new" style="flex:1;background:#333" onclick="mostrarAba('codigo')">Codigo</button></div>
 <button class="btn-new" onclick="criarNovoProjeto()">+ Criar Novo Projeto</button>
 <h3>Meus Projetos</h3><div id="lista"></div>
-<div id="chat"><div class="chat-top"><b id="chatTitulo">Novo Projeto</b><button onclick="fecharChat()">Fechar</button></div><div id="msgs"></div><div class="inputRow"><input id="prompt" placeholder="Ex: cria um app de vendas..."><button onclick="enviarParaKAI()">Enviar</button></div><button class="btn-pub" style="width:100%;margin-top:10px" onclick="publicarTudo()">Publicar Projeto</button></div>
+<div id="painelPreview"><iframe id="previewFrame" style="width:100%;height:420px;border:1px solid #2e1a5e;border-radius:12px;background:#fff"></iframe></div>
+<div id="painelCodigo" style="display:none"><div id="listaArquivos"></div><pre id="codigoAtual" style="white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;max-height:400px;overflow:auto"></pre></div>
+<div id="chat"><div class="chat-top"><b id="chatTitulo">Novo Projeto</b><button onclick="fecharChat()">Fechar</button></div><div id="msgs"></div><div class="inputRow"><input id="prompt" placeholder="Ex: cria um app de vendas, edita o botao pra verde, corrige o erro..."><button onclick="enviarParaKAI()">Enviar</button></div><button class="btn-pub" style="width:100%;margin-top:10px" onclick="publicarTudo()">Publicar Projeto</button></div>
 <script src="config.js"></script><script src="k-ai.js"></script><script src="app.js"></script>
 </body></html>
