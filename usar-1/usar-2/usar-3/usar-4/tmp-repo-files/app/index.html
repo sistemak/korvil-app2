@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="korvil">
+<link rel="manifest" href="/app/manifest.json">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/sistemak/korvil-app/main/public/icons/icon-192.png?v=20261019">
+<title>korvil app</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#222;border-radius:4px}
+.logo-korvil{width:180px;height:48px;object-fit:contain;display:block}
+@keyframes ktpPulse{0%,100%{box-shadow:0 0 15px #00ff88}50%{box-shadow:0 0 30px #00ff88}}
+@keyframes kaiPulse{0%,100%{box-shadow:0 0 25px #00d4ff,0 0 50px rgba(0,212,255,.3)}50%{box-shadow:0 0 35px #00d4ff,0 0 70px rgba(0,212,255,.4)}}
+#kaiBubble{animation:kaiPulse 2s ease-in-out infinite}
+.card-hover{transition:.2s}.card-hover:hover{border-color:#333;transform:translateY(-2px)}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- header -->
+<header style="position:fixed;top:0;left:0;right:0;height:64px;background:#000;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:50">
+  <button id="menuBtn" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#888;background:none;border:none;cursor:pointer;font-size:22px" aria-label="menu">&#9776;</button>
+  <img src="https://raw.githubusercontent.com/sistemak/korvil-app/main/korvil/assets/images/logokorvil.png" class="logo-korvil" alt="korvil" style="width:180px;height:48px;object-fit:contain;display:block">
+  <div style="width:36px;height:36px;border-radius:50%;background:#00d4ff;display:flex;align-items:center;justify-content:center;cursor:pointer" aria-label="usuario">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/></svg>
+  </div>
+</header>
+
+<!-- sidebar -->
+<aside id="sidebar" style="position:fixed;left:0;top:64px;bottom:0;width:90px;background:#0a0a0a;border-right:1px solid #1a1a1a;display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:18px;z-index:40;overflow-y:auto">
+  <div id="version-box" style="margin-top:auto;margin-bottom:12px;text-align:center;width:100%">
+    <div id="ver" style="font-size:10px;color:#aaa;font-weight:bold">v-2026</div>
+    <div id="date" style="font-size:10px;color:#666"></div>
+  </div>
+</aside>
+
+<!-- drawer -->
+<div id="drawer" style="position:fixed;top:0;left:-300px;width:280px;height:100vh;background:#0a0a0a;border-right:1px solid #222;z-index:60;transition:left .3s;overflow-y:auto;padding-top:64px">
+  <div style="padding:16px;border-bottom:1px solid #222">
+    <img src="https://raw.githubusercontent.com/sistemak/korvil-app/main/korvil/assets/images/logokorvil.png" style="width:140px;height:38px;object-fit:contain;display:block" alt="korvil">
+  </div>
+  <div id="drawer-links" style="padding:8px 0"></div>
+</div>
+<div id="drawerOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55;display:none"></div>
+
+<!-- main -->
+<main style="margin-left:90px;margin-top:64px;min-height:calc(100vh - 64px);background:#000;padding:24px;overflow-y:auto;height:calc(100vh - 64px)">
+  <div id="content"></div>
+</main>
+
+<!-- k-ai bubble -->
+<div id="kaiBubble" style="position:fixed;bottom:24px;right:24px;width:92px;height:92px;border-radius:50%;background:radial-gradient(circle,#00d4ff 0%,#0891b2 70%);display:flex;align-items:center;justify-content:center;cursor:grab;z-index:55;touch-action:none">
+  <span style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);color:#00d4ff;font-size:11px;font-weight:bold;white-space:nowrap;text-shadow:0 0 4px rgba(0,212,255,.8)">k-ai</span>
+  <img src="https://raw.githubusercontent.com/sistemak/korvil-app/main/korvil/sok/k-ai/assets/logokai/logokai.png" style="width:92px;height:92px;object-fit:contain;border-radius:50%;display:block;padding:8px" alt="k-ai">
+</div>
+
+<!-- k-ai modal -->
+<div id="kaiModal" style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:70;display:none;align-items:center;justify-content:center">
+  <div style="width:90%;max-width:420px;height:80vh;max-height:600px;background:#0a0a0a;border:1px solid #00d4ff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#111;border-bottom:1px solid #222">
+      <div style="display:flex;align-items:center;gap:8px">
+        <img src="https://raw.githubusercontent.com/sistemak/korvil-app/main/korvil/sok/k-ai/assets/logokai/logokai.png" style="width:32px;height:32px;object-fit:contain;border-radius:50%" alt="k-ai">
+        <span style="font-weight:bold;font-size:14px">k-ai</span>
+        <span style="font-size:10px;color:#00d4ff">online</span>
+      </div>
+      <button id="kaiClose" style="color:#888;background:none;border:none;font-size:20px;cursor:pointer">&times;</button>
+    </div>
+    <iframe id="kaiFrame" style="flex:1;border:none;width:100%"></iframe>
+  </div>
+</div>
+
+<script>
+const baseGh = 'https://github.com/sistemak/korvil-app/blob/main/';
+const baseRaw = 'https://raw.githubusercontent.com/sistemak/korvil-app/main/';
+
+const sections = [
+  { id:'kalma', name:'k-alma', logo:baseRaw+'korvil/sections/kalma/images/logokalma.png', path:'korvil/sections/kalma/index.html', color:'#ec4899', tagline:'saude & bem-estar' },
+  { id:'kafortunado', name:'k-afortunado', logo:baseRaw+'korvil/sections/kafortunado/images/logokafortunado.png', path:'korvil/sections/kafortunado/index.html', color:'#f59e0b', tagline:'empreendedorismo & financas' },
+  { id:'ktp', name:'k-tp', logo:baseRaw+'korvil/sections/ktp/assets/images/logoktp.png', path:'korvil/sections/ktp/index.html', color:'#00ff88', tagline:'fitness & performance', neon:true },
+  { id:'sistemak', name:'sistema k', logo:baseRaw+'korvil/sections/sistemak/images/logosistemak.png', path:'korvil/sections/sistemak/index.html', color:'#3b82f6', tagline:'servicos & tecnologia' }
+];
+
+const allItems = [
+  { name:'cursos', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/index.html', icon:'&#128218;', group:'desenvolvimento humano' },
+  { name:'plataforma-dos-cursos', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/plataforma-dos-cursos.html', icon:'&#127891;', group:'desenvolvimento humano' },
+  { name:'areas', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/index.html', icon:'&#127979;', group:'desenvolvimento humano' },
+  { name:'treinamento-personalizado', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/treinamento-personalizado/index.html', icon:'&#127919;', group:'desenvolvimento humano' },
+  { name:'servicos-profissionais', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/servicos-profissionais/index.html', icon:'&#128188;', group:'desenvolvimento humano' },
+  { name:'form-pro-manut-cel', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/servicos-profissionais/form-pro-manut-cel/index.html', icon:'&#128241;', group:'desenvolvimento humano' },
+  { name:'saude / kth', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/index.html', icon:'&#128153;', group:'desenvolvimento humano' },
+  { name:'calendario-anual', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/calendario-anual.html', icon:'&#128197;', group:'desenvolvimento humano' },
+  { name:'conclusao-certificados', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/conclusao-certificados/index.html', icon:'&#127942;', group:'desenvolvimento humano' },
+  { name:'fase1', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/fase1/index.html', icon:'&#9312;', group:'desenvolvimento humano' },
+  { name:'fase2', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/fase2/index.html', icon:'&#9313;', group:'desenvolvimento humano' },
+  { name:'fase3', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/fase3/index.html', icon:'&#9314;', group:'desenvolvimento humano' },
+  { name:'fase4', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/saude/kth/fase4/index.html', icon:'&#9315;', group:'desenvolvimento humano' },
+  { name:'negocio-proprio', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/empreendedorismo/negocio-proprio/index.html', icon:'&#128640;', group:'desenvolvimento humano' },
+  { name:'cabeleireiro-unissex', path:'korvil/sections/centralkorvil/desenvolvimento-humano/cursos/areas/beleza/cabeleireiro-unissex/index.html', icon:'&#128135;', group:'desenvolvimento humano' },
+  { name:'negocios', path:'korvil/sections/centralkorvil/negocios/index.html', icon:'&#128188;', group:'negocios' },
+  { name:'parcerias', path:'korvil/sections/centralkorvil/negocios/parcerias/index.html', icon:'&#129309;', group:'negocios' },
+  { name:'servicos', path:'korvil/sections/centralkorvil/servicos/index.html', icon:'&#128295;', group:'servicos' },
+  { name:'korvil-loja', path:'korvil/sections/centralkorvil/korvil-loja/index.html', icon:'&#128722;', group:'k.l korvil-loja' },
+  { name:'loja - korvil-loja', path:'korvil/sections/korvil-loja/index.html', icon:'&#128722;', group:'k.l korvil-loja' },
+  { name:'k-alma', path:'korvil/sections/kalma/index.html', icon:'&#128153;', group:'k-alma' },
+  { name:'k-alma servicos', path:'korvil/sections/kalma/servicos.html', icon:'&#128295;', group:'k-alma' },
+  { name:'k-alma terapeutas', path:'korvil/sections/kalma/terapeutas.html', icon:'&#129517;', group:'k-alma' },
+  { name:'k-afortunado', path:'korvil/sections/kafortunado/index.html', icon:'&#128176;', group:'k-afortunado' },
+  { name:'k-afortunado cursos', path:'korvil/sections/kafortunado/cursos.html', icon:'&#127891;', group:'k-afortunado' },
+  { name:'k-afortunado oportunidades', path:'korvil/sections/kafortunado/oportunidades.html', icon:'&#128161;', group:'k-afortunado' },
+  { name:'k-tp', path:'korvil/sections/ktp/index.html', icon:'&#128170;', group:'k-tp' },
+  { name:'k-tp projeto-transformacao', path:'korvil/sections/ktp/projetotransformacao/index.html', icon:'&#127939;', group:'k-tp' },
+  { name:'k-tp planos', path:'korvil/sections/ktp/servicos/planos.html', icon:'&#128203;', group:'k-tp' },
+  { name:'sistema k', path:'korvil/sections/sistemak/index.html', icon:'&#9881;', group:'sistema k' },
+  { name:'sistema k suporte', path:'korvil/sections/sistemak/servicos/suporte.html', icon:'&#128737;', group:'sistema k' },
+  { name:'sistema k integracoes', path:'korvil/sections/sistemak/servicos/integracoes.html', icon:'&#128268;', group:'sistema k' }
+];
+
+// build sidebar
+const sidebar = document.getElementById('sidebar');
+const versionBox = document.getElementById('version-box');
+sections.forEach(s => {
+  const btn = document.createElement('button');
+  btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:none;border:none';
+  const imgDiv = document.createElement('div');
+  imgDiv.style.cssText = 'width:64px;height:64px;border-radius:50%;background:#111;display:flex;align-items:center;justify-content:center;border:1px solid #222;' + (s.neon ? 'border:2px solid #00ff88;box-shadow:0 0 20px #00ff88;animation:ktpPulse 2s infinite;' : '');
+  const img = document.createElement('img');
+  img.src = s.logo; img.alt = s.name;
+  img.style.cssText = 'width:56px;height:56px;object-fit:contain;border-radius:50%';
+  img.onerror = () => { img.style.display = 'none'; imgDiv.style.background = s.color; };
+  imgDiv.appendChild(img);
+  const label = document.createElement('span');
+  label.textContent = s.name;
+  label.style.cssText = 'font-size:9px;color:#aaa;text-align:center';
+  btn.appendChild(imgDiv); btn.appendChild(label);
+  btn.onclick = () => filterSection(s.id);
+  sidebar.insertBefore(btn, versionBox);
+});
+
+// version + date
+const d = new Date();
+document.getElementById('date').textContent = d.getDate() + '/' + (d.getMonth()+1) + ' ' + d.toLocaleDateString('pt-BR', { weekday:'short' });
+
+
+// drawer
+const drawer = document.getElementById('drawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const drawerLinks = document.getElementById('drawer-links');
+
+function buildDrawer() {
+  let html = '';
+  const groups = {};
+  allItems.forEach(i => { if (!groups[i.group]) groups[i.group] = []; groups[i.group].push(i); });
+  Object.keys(groups).forEach(g => {
+    html += '<div style="padding:8px 16px;font-size:10px;color:#555;text-transform:uppercase;font-weight:bold;letter-spacing:1px">' + g + '</div>';
+    groups[g].forEach(item => {
+      html += '<a href="' + baseGh + item.path + '" target="_blank" style="display:block;padding:10px 16px;color:#ccc;font-size:13px;text-decoration:none;transition:.2s" onmouseover="this.style.background=\'#111\'" onmouseout="this.style.background=\'none\'">' + item.icon + ' ' + item.name + '</a>';
+    });
+  });
+  drawerLinks.innerHTML = html;
+}
+buildDrawer();
+
+document.getElementById('menuBtn').onclick = () => { drawer.style.left = '0'; drawerOverlay.style.display = 'block'; };
+drawerOverlay.onclick = () => { drawer.style.left = '-300px'; drawerOverlay.style.display = 'none'; };
+
+// content
+const content = document.getElementById('content');
+
+function card(item) {
+  return '<a href="' + baseGh + item.path + '" target="_blank" class="card-hover" style="display:flex;align-items:center;gap:12px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;padding:14px;text-decoration:none;color:#fff">' +
+    '<span style="font-size:24px;flex-shrink:0">' + item.icon + '</span>' +
+    '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">' + item.name + '</div>' +
+    '<div style="font-size:10px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + item.path + '</div></div>' +
+    '<span style="color:#333;font-size:18px;flex-shrink:0">&rsaquo;</span></a>';
+}
+
+function renderAll() {
+  const groups = {};
+  allItems.forEach(i => { if (!groups[i.group]) groups[i.group] = []; groups[i.group].push(i); });
+  let html = '<div class="fade-in"><div style="margin-bottom:24px"><h1 style="font-size:28px;font-weight:800">korvil app</h1><p style="color:#666;font-size:14px;margin-top:4px">s.o.k - acesso total automatico: github + bolt + app</p></div>';
+  Object.keys(groups).forEach(g => {
+    html += '<h3 style="font-size:16px;font-weight:bold;color:#00d4ff;margin:24px 0 12px">' + g + '</h3>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;max-width:900px">' + groups[g].map(card).join('') + '</div>';
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function filterSection(id) {
+  const s = sections.find(x => x.id === id);
+  if (!s) return;
+  const sectionMap = { kalma:'k-alma', kafortunado:'k-afortunado', ktp:'k-tp', sistemak:'sistema k' };
+  const items = allItems.filter(i => i.group === sectionMap[id]);
+  content.innerHTML = '<div class="fade-in"><button onclick="renderAll()" style="color:#666;background:none;border:none;cursor:pointer;font-size:13px;margin-bottom:16px">&larr; voltar</button>' +
+    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">' +
+    '<img src="' + s.logo + '" style="width:64px;height:64px;object-fit:contain;border-radius:50%;border:2px solid ' + s.color + '" onerror="this.style.display=\'none\'">' +
+    '<div><h2 style="font-size:24px;font-weight:800">' + s.name + '</h2><p style="color:#666;font-size:13px">' + s.tagline + '</p></div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;max-width:900px">' + items.map(card).join('') + '</div></div>';
+}
+
+renderAll();
+window.renderAll = renderAll;
+window.filterSection = filterSection;
+
+// k-ai bubble
+const kaiBubble = document.getElementById('kaiBubble');
+const kaiModal = document.getElementById('kaiModal');
+const kaiFrame = document.getElementById('kaiFrame');
+const kaiClose = document.getElementById('kaiClose');
+kaiClose.onclick = () => { kaiModal.style.display = 'none'; kaiFrame.src = ''; };
+
+let isDragging = false, startX, startY, offsetX, offsetY, pressTime, hasMoved;
+
+function startDrag(x, y) {
+  const rect = kaiBubble.getBoundingClientRect();
+  offsetX = x - rect.left; offsetY = y - rect.top;
+  startX = x; startY = y; pressTime = Date.now(); hasMoved = false; isDragging = false;
+}
+function moveDrag(x, y) {
+  if (Math.abs(x-startX) > 5 || Math.abs(y-startY) > 5) hasMoved = true;
+  if (hasMoved) {
+    isDragging = true; kaiBubble.style.animation = 'none';
+    let nx = Math.max(16, Math.min(window.innerWidth - 92 - 16, x - offsetX));
+    let ny = Math.max(80, Math.min(window.innerHeight - 92 - 16, y - offsetY));
+    kaiBubble.style.left = nx + 'px'; kaiBubble.style.top = ny + 'px';
+    kaiBubble.style.right = 'auto'; kaiBubble.style.bottom = 'auto';
+  }
+}
+function endDrag() {
+  const elapsed = Date.now() - pressTime;
+  if (!hasMoved && elapsed < 2000) {
+    kaiFrame.src = baseRaw + 'korvil/sok/k-ai/index.html';
+    kaiModal.style.display = 'flex';
+  }
+  if (isDragging) {
+    const rect = kaiBubble.getBoundingClientRect();
+    const cx = rect.left + 46;
+    let snapX = cx < window.innerWidth / 2 ? 24 : window.innerWidth - 92 - 24;
+    const snapY = Math.max(80, Math.min(window.innerHeight - 92 - 24, rect.top + 46));
+    kaiBubble.style.left = snapX + 'px'; kaiBubble.style.top = snapY + 'px';
+    kaiBubble.style.animation = 'kaiPulse 2s ease-in-out infinite';
+  }
+  isDragging = false;
+}
+
+kaiBubble.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
+document.addEventListener('mousemove', e => { if (pressTime) moveDrag(e.clientX, e.clientY); });
+document.addEventListener('mouseup', () => { if (pressTime) { endDrag(); pressTime = null; } });
+kaiBubble.addEventListener('touchstart', e => { const t = e.touches[0]; startDrag(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (pressTime) { const t = e.touches[0]; moveDrag(t.clientX, t.clientY); } }, { passive: true });
+document.addEventListener('touchend', () => { if (pressTime) { endDrag(); pressTime = null; } });
+
+</script>
+
+<script>
+let promptInstalacao = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  promptInstalacao = e;
+});
+async function botaoInstalar() {
+  if (promptInstalacao) {
+    promptInstalacao.prompt();
+    let escolha = await promptInstalacao.userChoice;
+    if (escolha.outcome === 'accepted') {
+      console.log('Usuário instalou');
+    }
+    promptInstalacao = null;
+  }
+}
+</script>
+<button onclick="botaoInstalar()" id="installBtn" style="position:fixed;bottom:20px;right:20px;z-index:99999;background:#00d4ff;color:#000;padding:14px 22px;border:none;border-radius:12px;font-weight:bold">Instalar</button>
+</body>
+</html>

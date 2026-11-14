@@ -1,0 +1,49 @@
+{
+  "projectId": "72116873",
+  "functions": {
+    "github-proxy": {
+      "hasChanged": false,
+      "hash": "704d8f221517aec577ea8400e01d8d8a46bec232e6170ac92700c7f86ce7bd86"
+    },
+    "github-save": {
+      "hasChanged": false,
+      "hash": "d5eb076a54fd205d55bdeaae210bec8e6bf4148c142c36f6120d8dd7f1188757"
+    },
+    "kai-automation-runner": {
+      "hasChanged": false,
+      "hash": "e701460fa5087535cd174a65852cca8f561233cdb646f7004492088d17197aae"
+    },
+    "kai-brain": {
+      "hasChanged": false,
+      "hash": "81ae08bdffa62531994acfa2b19797f6aa7120fab742119ac29f24a7c93edff9"
+    },
+    "kai-evolve": {
+      "hasChanged": false,
+      "hash": "9e1162b4dd0112e5bf61014691e322da6413d9529fd26b47e44cd5319e40b75a"
+    },
+    "korvil-ai": {
+      "hasChanged": false,
+      "hash": "b2a9e3f829c8faf7701f25fa2b09458751ae4df41249df90087cbfca3f20aa79"
+    },
+    "notificar-atividade": {
+      "hasChanged": false,
+      "hash": "f77298bd97097cee846dda2421feeb4305f609540bdd3def39b724f75c8fe914"
+    },
+    "send-transformacao-whatsapp": {
+      "hasChanged": false,
+      "hash": "a0a04e6403fcb4f1b0168b704199636e6376dd1ba3249c38191ec5ae6bae2e1f"
+    },
+    "sok-files": {
+      "hasChanged": false,
+      "hash": "3f3bbfce5cbbe0055a6da9737ecccf4d992bb416bdfcc44a135eeedae1ef3bae"
+    },
+    "transformacao-ficha": {
+      "hasChanged": false,
+      "hash": "830a68d1523ca91b2f960f09d576bc8df151b5a7908b84ee1ac8c5ad3575b0ee"
+    },
+    "transformacao-identidade": {
+      "hasChanged": false,
+      "hash": "897c539c82122e67f88f83678734839bdec1f2a39d9d2feeb65d93e56b16711f"
+    }
+  }
+}
