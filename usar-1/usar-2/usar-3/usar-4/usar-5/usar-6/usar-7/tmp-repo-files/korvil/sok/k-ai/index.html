@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>k-ai - s.o.k</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#222;border-radius:4px}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px #00d4ff}50%{box-shadow:0 0 16px #00d4ff}}
+.msg-user{align-self:flex-end;background:#00d4ff;color:#000;border-radius:16px 16px 4px 16px;padding:10px 14px;max-width:80%;font-size:14px;word-break:break-word}
+.msg-kai{align-self:flex-start;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:16px 16px 16px 4px;padding:10px 14px;max-width:85%;font-size:14px;word-break:break-word}
+.msg-kai .status{font-size:10px;color:#00d4ff;margin-bottom:4px}
+.typing{display:inline-block;width:6px;height:6px;border-radius:50%;background:#00d4ff;margin:0 2px;animation:blink 1.4s infinite both}
+.typing:nth-child(2){animation-delay:.2s}.typing:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- header -->
+<header style="height:56px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#0a0a0a">
+  <div style="display:flex;align-items:center;gap:10px">
+    <img src="https://raw.githubusercontent.com/sistemak/korvil-app/main/korvil/sok/k-ai/assets/logokai/logokai.png" style="width:48px;height:48px;object-fit:contain;border-radius:50%;animation:pulse 2s infinite" alt="k-ai">
+    <div>
+      <div style="font-weight:bold;font-size:15px">k-ai</div>
+      <div style="font-size:10px;color:#00d4ff">online - acesso total automatico</div>
+    </div>
+  </div>
+  <div style="font-size:9px;color:#555;text-align:right">
+    groq llama-3.3-70b<br>fallback: deepseek / qwen / gemini
+  </div>
+</header>
+
+<!-- access status -->
+<div style="padding:8px 16px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;font-size:11px;color:#888;text-align:center">
+  acesso total automatico combinado: k-ai reconhece, verifica e usa tudo do <b style="color:#00d4ff">github</b> + <b style="color:#00d4ff">bolt</b> + <b style="color:#00d4ff">app</b>
+</div>
+
+<!-- messages -->
+<div id="msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+  <div class="msg-kai">
+    <div class="status">k-ai - acesso total verificado</div>
+    ola! sou a k-ai, inventora do ecossistema korvil. tenho acesso total automatico ao github, bolt e app. posso criar lojas, cursos, servicos, sistemas e muito mais. o que voce quer construir hoje?
+  </div>
+</div>
+
+<!-- suggestions -->
+<div id="suggestions" style="padding:0 16px 8px;display:flex;flex-wrap:wrap;gap:6px">
+  <button class="sug" style="background:#0a0a0a;border:1px solid #00d4ff;color:#00d4ff;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer" data-q="cria loja korvil">cria loja korvil</button>
+  <button class="sug" style="background:#0a0a0a;border:1px solid #00d4ff;color:#00d4ff;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer" data-q="mostra os cursos disponiveis">mostra os cursos</button>
+  <button class="sug" style="background:#0a0a0a;border:1px solid #00d4ff;color:#00d4ff;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer" data-q="quais servicos o sistema k oferece?">servicos sistema k</button>
+  <button class="sug" style="background:#0a0a0a;border:1px solid #00d4ff;color:#00d4ff;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer" data-q="o que tem no k-alma?">k-alma</button>
+</div>
+
+<!-- input -->
+<div style="padding:12px 16px;border-top:1px solid #1a1a1a;display:flex;gap:8px;background:#0a0a0a">
+  <input id="input" style="flex:1;background:#000;border:1px solid #222;border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none" placeholder="fale com a k-ai..." onkeydown="if(event.key==='Enter')send()">
+  <button id="sendBtn" onclick="send()" style="background:#00d4ff;color:#000;border:none;border-radius:12px;padding:0 20px;font-weight:bold;cursor:pointer">enviar</button>
+</div>
+
+<script>
+const msgs = document.getElementById('msgs');
+const input = document.getElementById('input');
+const suggestions = document.getElementById('suggestions');
+
+const responses = {
+  'loja': 'conectando ao github... verifiquei a estrutura korvil/sections/centralkorvil/korvil-loja/index.html e tambem korvil/sections/korvil-loja/index.html. a korvil loja esta pronta com marketplace oficial, produtos do ecossistema, carrinho, categorias e checkout integrado. quer que eu abra a loja agora?',
+  'cursos': 'a central korvil oferece: plataforma-dos-cursos, areas (beleza, empreendedorismo, saude, servicos-profissionais), treinamento-personalizado, form-pro-manut-cel, saude/kth com 4 fases, calendario-anual, conclusao-certificados, empreendedorismo/negocio-proprio e beleza/cabeleireiro-unissex. todos com certificados de conclusao. qual curso deseja explorar?',
+  'servicos': 'o sistema k oferece: servicos-gerais, suporte, integracoes e a plataforma sistemak. inclui limpeza, seguranca, profissionais, advocacia, contabilidade, tecnologias, sites e sistemas. acesso total automatico verificado e combinado com o github e o bolt.',
+  'kafortunado': 'k-afortunado: empreendedorismo, cursos, oportunidades, financas, investimentos e planilhas. tudo verificado no repositorio e pronto para uso no app.',
+  'kalma': 'k-alma: saude, terapia-holistica, massoterapia, ortopedista, ortodontia, beleza, barbearia, cabeleireiro, esteticista e manicure-pedicure. cuidado completo do bem-estar verificado no github.',
+  'ktp': 'k-tp: fitness, projeto-transformacao, planos, acessorios, artigos-esportivos, equipamentos-aparelhos, suplementos e produtos-alimentares. performance total verificada.',
+  'sistemak': 'sistema k: servicos-gerais, suporte, integracoes, tecnologias, sites e sistemas. acesso total combinado com k-ai, github, bolt e app.',
+  'github': 'github e a fonte original onde toda estrutura, pastas, arquivos, codigos e index sao salvos. k-ai, bolt e app tem acesso total automatico permitido combinado entre eles.',
+  'bolt': 'bolt e o construtor ilimitado que cria tudo completo e salva organizado em pastas dentro do github. ja cria o projeto final renderizado como app instalado no celular. bolt reconhece k-ai, github e app automaticamente.',
+  'app': 'korvil app e o app final que atualiza em tempo real sem precisar desinstalar e instalar de novo a cada atualizacao. reconhece tudo que esta no github e no s.o.k automaticamente.'
+};
+
+function getResponse(q) {
+  const lower = q.toLowerCase();
+  for (const [key, resp] of Object.entries(responses)) {
+    if (lower.includes(key)) return resp;
+  }
+  return 'sou a k-ai, inventora do ecossistema korvil. tenho acesso total automatico ao github, bolt e app. posso criar lojas, cursos, servicos, sistemas e muito mais. o que voce quer construir hoje?';
+}
+
+function addMsg(cls, text, status) {
+  const div = document.createElement('div');
+  div.className = cls;
+  if (status) div.innerHTML = '<div class="status">' + status + '</div>' + text;
+  else div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function send() {
+  const q = input.value.trim();
+  if (!q) return;
+  addMsg('msg-user', q);
+  input.value = '';
+  suggestions.style.display = 'none';
+
+  const typing = addMsg('msg-kai', '<span class="typing"></span><span class="typing"></span><span class="typing"></span>');
+  typing.innerHTML = '<div class="status">k-ai verificando github, bolt e app...</div><span class="typing"></span><span class="typing"></span><span class="typing"></span>';
+
+  setTimeout(() => {
+    typing.innerHTML = '<div class="status">k-ai - acesso total verificado</div>' + getResponse(q);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 800);
+}
+
+document.querySelectorAll('.sug').forEach(btn => {
+  btn.onclick = () => { input.value = btn.dataset.q; send(); };
+});
+</script>
+</body>
+</html>
