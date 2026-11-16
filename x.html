@@ -21,7 +21,7 @@
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
 </style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MESTRE - Anexar Tudo em Um So Lugar</title>
+<title>MESTRE - Limpar Tudo + Importar Arrumado para korvil-app2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:760px;margin:auto}
 h1{color:#a855f7}input{width:100%;padding:16px;border-radius:12px;border:1px solid #444;background:#1a1030;color:#fff;margin:10px 0;font-size:16px}
@@ -29,19 +29,21 @@ button{width:100%;padding:18px;border:0;border-radius:14px;font-weight:900;font-
 .btn-testar{background:#a855f7;color:#fff}.btn-confirmar{background:#22c55e;color:#000}.btn-anexar{background:#2563eb;color:#fff}
 #drop{border:3px dashed #a855f7;border-radius:16px;padding:28px;text-align:center;margin:14px 0;background:#1a1030}
 #drop.dragover{border-color:#22c55e;background:#0f2a1a}
-#log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:240px;max-height:520px;overflow:auto}
+#log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:260px;max-height:520px;overflow:auto}
 .ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}.card{background:#1a1030;border:1px solid #444;border-radius:14px;padding:14px;margin:14px 0;white-space:pre-wrap;font-family:monospace;font-size:12px}
 small{color:#b7a8d9}</style></head>
-<body><h1>MESTRE - Anexar Tudo em Um So Lugar</h1>
-<div class="card"><b>Regra:</b>
-- 1 so botao + 1 so lugar pra arrastar = 1 so funcao, sem divisao
-- Reconhece TUDO que tiver dentro de todas as pastas / arquivos / codigos
-- Mantem a MESMA ordem e a MESMA estrutura que voce enviou
-- Se for ZIP compactado, extrai tudo e anexa na pagina mantendo a ordem
-- Se for pasta ja extraida, anexa mantendo a ordem
-- So arruma o nome do repositorio errado, nao muda a base dos links / caminhos:
-  sistemak/korvil-app  -&gt;  sistemak/korvil-app2
-- Destino: https://github.com/sistemak/korvil-app2</div>
+<body><h1>MESTRE - Limpar Tudo + Importar Arrumado</h1>
+<div class="card"><b>O que faz, exatamente:</b>
+1. Apaga TODAS as pastas / arquivos / codigos antigos que tiver no repositorio
+   - Pra NUNCA duplicar nada
+2. Quando clicar em CONFIRMAR, arruma SO os nomes que tiver sistemak/korvil-app
+   - Deixa: sistemak/korvil-app2
+   - NAO muda a base dos links / caminhos
+   - Ex: https://github.com/sistemak/korvil-app/... -&gt; https://github.com/sistemak/korvil-app2/...
+   - Ex: https://api.github.com/repos/sistemak/korvil-app/... -&gt; https://api.github.com/repos/sistemak/korvil-app2/...
+3. Envia TODAS as pastas / arquivos / codigos ja arrumados
+- Destino: https://github.com/sistemak/korvil-app2/tree/main
+- ATENCAO: Depois de confirmar, so fica no repo o que voce anexou. O que era antigo e voce nao anexou, vai ser apagado.</div>
 <label><b>1. Cole seu REPO_TOKEN:</b></label><input id="token" type="password" placeholder="ghp_... cole aqui" autocomplete="off">
 <div id="infoToken" style="font-size:12px;color:#b7a8d9"></div>
 <button class="btn-testar" id="btnTestar" type="button">ATIVAR</button>
@@ -55,7 +57,7 @@ small{color:#b7a8d9}</style></head>
 Arraste ou clique em ANEXAR TUDO que eu mostro tudo na mesma ordem que voce enviou.</div>
 
 <label><b>3. Confirme:</b></label>
-<button class="btn-confirmar" id="btnConfirmar" type="button">✅ CONFIRMAR - ARRUMAR TUDO E IMPORTAR PARA korvil-app2</button>
+<button class="btn-confirmar" id="btnConfirmar" type="button">✅ CONFIRMAR - EXCLUIR ANTIGOS + ARRUMAR + ENVIAR TUDO</button>
 <div id="log">Aguardando token...</div>
 <script>
 (function(){
@@ -71,9 +73,9 @@ try{var s=localStorage.getItem('MESTRE_TOKEN');if(s)el('token').value=s;}catch(e
 el('token').addEventListener('input',mostrarInfo);
 el('token').addEventListener('paste',function(){setTimeout(mostrarInfo,50);});
 async function testar(){try{var t=getToken();el('log').innerHTML='';log('Testando acesso em https://github.com/sistemak/korvil-app2 ...','warn');var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});var texto=await r.text();var j={};try{j=JSON.parse(texto);}catch(e){}if(!r.ok){var msg=j.message||texto.slice(0,300);if(r.status===401)throw new Error('401 - Token invalido / expirado. Gera um novo Tokens (classic) com escopo repo.');if(r.status===403)throw new Error('403 - Token sem permissao repo.');if(r.status===404)throw new Error('404 - Repo nao achado ou token sem acesso.');throw new Error('Erro '+r.status+' - '+msg);}log('✅ ACESSO ATIVADO! Repo: '+j.full_name,'ok');log('Agora arraste ou ANEXAR TUDO de uma vez e clique em CONFIRMAR.','warn');}catch(e){log('❌ '+e.message,'err');}}
-// --- Correcao: SO o nome do repositorio, base intacta ---
-// https://github.com/sistemak/korvil-app -> https://github.com/sistemak/korvil-app2 (base https://github.com/ igual)
-// https://api.github.com/repos/sistemak/korvil-app -> .../sistemak/korvil-app2 (base igual)
+// --- SO troca o nome do repositorio, NAO muda a base ---
+// https://github.com/sistemak/korvil-app/... -> https://github.com/sistemak/korvil-app2/... (base igual)
+// https://api.github.com/repos/sistemak/korvil-app/... -> .../sistemak/korvil-app2/... (base igual)
 // sistemak/korvil-app2 ja certo -> nao mexe
 function corrigirCaminhos(texto){
   if(typeof texto!=='string') return texto;
@@ -87,7 +89,6 @@ function ehTexto(nome){return /\.(html|htm|css|js|jsx|ts|tsx|json|md|txt|xml|svg
 function limparPath(p){return String(p).replace(/^\.\//,'').replace(/^\/+/,'').replace(/\\/g,'/');}
 function atualizarLista(){
   if(!arquivos.length){el('lista').textContent='Nenhum arquivo anexado ainda.\nArraste ou clique em ANEXAR TUDO que eu mostro tudo na mesma ordem que voce enviou.';return;}
-  // NAO ordena - mostra na ordem exata de envio
   var html='<b>'+arquivos.length+' arquivo(s) - NA MESMA ORDEM QUE VOCE ENVIOU:</b>\n';
   for(var i=0;i<arquivos.length;i++){html+=(i+1)+'. '+arquivos[i].path+'\n';}
   el('lista').textContent=html;
@@ -109,7 +110,6 @@ async function addZip(file){
   for(var i=0;i<nomes.length;i++){var entry=zip.files[nomes[i]];if(entry.dir)continue;var p=limparPath(nomes[i]);if(jaExiste(p))continue;var data=await entry.async('uint8array');arquivos.push({path:p, bytes:data});}
   log('ZIP extraido: '+nomes.length+' entradas, na mesma ordem do ZIP','ok');
 }
-// Le TODAS as entradas sem perder, na ordem que vieram
 async function lerTodasEntradas(reader){
   var todas=[];
   while(true){var lote=await new Promise(function(res,rej){reader.readEntries(res,rej);});if(!lote.length)break;todas=todas.concat(lote);}
@@ -126,19 +126,14 @@ async function percorrerHandle(handle, prefix){
   else if(handle.kind==='directory'){for await(var entry of handle.values()){await percorrerHandle(entry, prefix+handle.name+'/');}}
 }
 // ===== 1 SO FUNCAO - anexar / arrastar TUDO =====
-// Reconhece: arquivo, pasta, subpasta, codigo, imagem, ZIP compactado, pasta ja extraida
-// Mantem estrutura + ordem exata de envio
 async function anexarTudo(origem){
-  // origem pode ser: FileList, DataTransfer, ou File unico
   if(origem && origem.files && origem.files.length && !origem.items){
-    // FileList do input unico
     var fl=origem.files;
     for(var i=0;i<fl.length;i++){var f=fl[i];
       if(f.name.toLowerCase().slice(-4)==='.zip'){await addZip(f);}
       else{var rel=f.webkitRelativePath||f.name;await addFile(rel, f);}
     }
   } else if(origem && origem.items){
-    // DataTransfer do arrastar - pastas, arquivos, ZIP, tudo junto
     var items=Array.prototype.slice.call(origem.items);
     for(var j=0;j<items.length;j++){var it=items[j];
       var handleOk=false;
@@ -155,17 +150,38 @@ async function anexarTudo(origem){
   atualizarLista();
   log('✅ TUDO anexado junto. Total: '+arquivos.length+' arquivo(s) - mesma ordem e mesma estrutura','ok');
 }
-// 1 SO BOTAO - abre o seletor unico (arquivos, pastas via arrastar, ZIP via arrastar ou via botao)
 el('btnAnexar').addEventListener('click',function(){el('inputUnico').click();});
 el('inputUnico').addEventListener('change',function(){anexarTudo(this);this.value='';});
-// 1 SO LUGAR PRA ARRASTAR - a caixa + a pagina inteira vao para a MESMA funcao
 var drop=el('drop');
 ['dragenter','dragover'].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add('dragover');});});
 ['dragleave','drop'].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove('dragover');});});
 drop.addEventListener('drop',function(e){anexarTudo(e.dataTransfer);});
 document.body.addEventListener('dragover',function(e){e.preventDefault();});
 document.body.addEventListener('drop',function(e){if(e.target!==drop){e.preventDefault();anexarTudo(e.dataTransfer);}});
-// --- CONFIRMAR: 1 clique arruma tudo e importa tudo ---
+// --- Excluir TODOS os antigos, pra nunca duplicar ---
+async function excluirTodosAntigos(token){
+  log('Excluindo TODOS os antigos do repositorio para nao duplicar nada...','warn');
+  var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/trees/'+BRANCH+'?recursive=1',{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
+  var j=await r.json();
+  if(!r.ok)throw new Error('Nao consegui listar antigos: '+r.status+' '+(j.message||''));
+  var antigos=(j.tree||[]).filter(function(x){return x.type==='blob';});
+  log('Antigos encontrados: '+antigos.length+' arquivo(s). Excluindo todos...','warn');
+  var apagados=0, falhas=0;
+  var CONC=6;
+  var fila=antigos.slice();
+  async function trab(){
+    while(fila.length){var f=fila.shift();
+      try{
+        var del=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+f.path.split('/').map(encodeURIComponent).join('/'),{method:'DELETE',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'MESTRE: excluir antigo '+f.path,sha:f.sha,branch:BRANCH})});
+        if(del.ok)apagados++;else{falhas++;log('❌ Falhou excluir antigo '+f.path+' -> '+del.status,'err');}
+      }catch(e){falhas++;log('❌ Erro excluir '+f.path+': '+e.message,'err');}
+    }
+  }
+  var ts=[];for(var i=0;i<CONC;i++)ts.push(trab());
+  await Promise.all(ts);
+  log('✅ Antigos excluidos: '+apagados+' de '+antigos.length+' (falhas: '+falhas+')','ok');
+}
+// --- Enviar os novos ja arrumados ---
 function paraBase64(bytes){var bin='';var chunk=0x8000;for(var i=0;i<bytes.length;i+=chunk){bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));}return btoa(bin);}
 async function enviarUm(token, arquivo){
   var path=arquivo.path; // estrutura + ordem exatas, sem mudar
@@ -175,11 +191,8 @@ async function enviarUm(token, arquivo){
     var corrigido=corrigirCaminhos(texto); // so nome do repo, base intacta
     conteudoB64=btoa(unescape(encodeURIComponent(corrigido)));
   }else{conteudoB64=paraBase64(arquivo.bytes);}
-  var sha=null;
-  var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/')+'?ref='+BRANCH,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
-  if(get.ok){var gj=await get.json();if(gj.sha)sha=gj.sha;}
+  // Como acabamos de excluir tudo, nao precisa buscar sha - cria novo
   var body={message:'MESTRE: importar '+path+' (so corrigido sistemak/korvil-app -> sistemak/korvil-app2)',content:conteudoB64,branch:BRANCH};
-  if(sha)body.sha=sha;
   var put=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!put.ok){var t=await put.text();throw new Error(put.status+' '+t.slice(0,200));}
   return path;
@@ -188,23 +201,24 @@ async function confirmar(){
   try{
     var token=getToken();
     if(!arquivos.length){alert('Arraste ou ANEXAR TUDO primeiro.');return;}
-    if(!confirm('Confirmar importacao de '+arquivos.length+' arquivo(s) para https://github.com/sistemak/korvil-app2 ?\n\n- Mantem EXATAMENTE a mesma ordem e mesma estrutura que voce enviou\n- So corrige o nome do repositorio: sistemak/korvil-app -> sistemak/korvil-app2\n- NAO muda a base dos links / caminhos\n- Tudo junto em 1 CONFIRMAR'))return;
+    if(!confirm('CONFIRMAR?\n\n1. Vai EXCLUIR TODAS as pastas / arquivos / codigos antigos de https://github.com/sistemak/korvil-app2\n2. Vai ARRUMAR so os nomes sistemak/korvil-app -> sistemak/korvil-app2 (base dos links igual)\n3. Vai ENVIAR as '+arquivos.length+' pastas / arquivos / codigos que voce anexou, ja arrumados\n\nDepois disso, so fica no repo o que voce anexou. Nunca duplica. Confirmar mesmo?'))return;
     el('log').innerHTML='';
-    log('Arrumei tudo: corrigindo SO o nome do repo e importando '+arquivos.length+' arquivo(s) na mesma ordem...','warn');
     var inicio=Date.now();
+    await excluirTodosAntigos(token);
+    log('Enviando '+arquivos.length+' arquivo(s) ja arrumados, na mesma ordem...','warn');
     var concluidos=0, falhas=0;
     var CONCORRENCIA=6;
-    var fila=arquivos.slice(); // fila NA MESMA ORDEM de envio
+    var fila=arquivos.slice();
     async function trabalhador(){while(fila.length){var arq=fila.shift();try{await enviarUm(token, arq);concluidos++;if(concluidos%10===0||concluidos===arquivos.length)log('Progresso: '+concluidos+'/'+arquivos.length,'ok');}catch(e){falhas++;log('❌ Falhou '+arq.path+': '+e.message,'err');}}}
     var trabalhadores=[];for(var i=0;i<CONCORRENCIA;i++)trabalhadores.push(trabalhador());
     await Promise.all(trabalhadores);
     var seg=((Date.now()-inicio)/1000).toFixed(1);
-    log('🎉 PRONTO em '+seg+'s: '+concluidos+' importados, '+falhas+' falhas de '+arquivos.length+' - mesma ordem e mesma estrutura','ok');
+    log('🎉 PRONTO em '+seg+'s: antigos excluidos + '+concluidos+' enviados arrumados, '+falhas+' falhas de '+arquivos.length+' - sem duplicar nada','ok');
     log('Confira em: https://github.com/sistemak/korvil-app2/tree/main','ok');
   }catch(e){log('❌ '+e.message,'err');}
 }
 el('btnTestar').addEventListener('click',testar);
 el('btnConfirmar').addEventListener('click',confirmar);
-log('MESTRE corrigido carregado - 1 SO botao + 1 SO arrastar, 1 SO funcao. ATIVAR igual antes.');
+log('MESTRE carregado - ATIVAR igual antes. ANEXAR TUDO 1 vez, CONFIRMAR 1 vez: exclui antigos + arruma + envia tudo.');
 })();
 </script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
