@@ -1,0 +1,5 @@
+[functions.k-ai]
+verify_jwt = false
+
+[functions.publish]
+verify_jwt = false
