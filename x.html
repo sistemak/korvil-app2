@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MESTRE - Excluir + ZIP + Enviar Arrumado korvil-app2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:760px;margin:auto}
+h1{color:#a855f7}input{width:100%;padding:16px;border-radius:12px;border:1px solid #444;background:#1a1030;color:#fff;margin:10px 0;font-size:16px}
+button{width:100%;padding:18px;border:0;border-radius:14px;font-weight:900;font-size:18px;cursor:pointer;margin-top:10px}
+.btn-testar{background:#a855f7;color:#fff}.btn-excluir{background:#ff2222;color:#fff}.btn-confirmar{background:#22c55e;color:#000}.btn-anexar{background:#2563eb;color:#fff}
+#drop{border:3px dashed #a855f7;border-radius:16px;padding:28px;text-align:center;margin:14px 0;background:#1a1030}
+#drop.dragover{border-color:#22c55e;background:#0f2a1a}
+#log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:260px;max-height:520px;overflow:auto}
+.ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}.card{background:#1a1030;border:1px solid #444;border-radius:14px;padding:14px;margin:14px 0;white-space:pre-wrap;font-family:monospace;font-size:12px}
+small{color:#b7a8d9}</style></head>
+<body><h1>MESTRE - Excluir + ZIP + Enviar Arrumado</h1>
+<div class="card"><b>Passo a passo, separado pra nao dar erro:</b>
+1. ATIVAR com REPO_TOKEN
+2. EXCLUIR TUDO - apaga todas as pastas / arquivos / codigos antigos do repo, espera terminar
+3. ANEXAR ZIP - arrasta ou clica, ele extrai tudo mantendo ordem e estrutura
+4. CONFIRMAR - envia tudo ja arrumado
+
+<b>O que arruma:</b>
+- So o nome: sistemak/korvil-app -&gt; sistemak/korvil-app2
+- Numeros antigos / sha antigos nos links: /blob/SHA... -&gt; /blob/main, /tree/SHA... -&gt; /tree/main
+- Caminhos dentro do main: ficam certos em korvil-app2/tree/main/...
+- NAO muda a base dos links (https://github.com/, https://api.github.com/, etc.)
+- Nada inventado, nada falso
+- Destino: https://github.com/sistemak/korvil-app2/tree/main</div>
+<label><b>1. Cole seu REPO_TOKEN:</b></label><input id="token" type="password" placeholder="ghp_... cole aqui" autocomplete="off">
+<div id="infoToken" style="font-size:12px;color:#b7a8d9"></div>
+<button class="btn-testar" id="btnTestar" type="button">ATIVAR</button>
+
+<label><b>2. Excluir os antigos:</b></label>
+<button class="btn-excluir" id="btnExcluir" type="button">🗑️ EXCLUIR TODAS AS PASTAS / ARQUIVOS / CODIGOS ANTIGOS</button>
+<div id="statusExcluir" style="font-size:13px;color:#ffcc00;margin-top:6px"></div>
+
+<label><b>3. Anexe / arraste o ZIP (ou pasta ja extraida) - 1 so lugar:</b></label>
+<div id="drop"><b>⬇️ ARRASTE O ZIP AQUI</b><br><small>ZIP compactado ou pasta ja extraida, pastas, arquivos, codigos<br>De qualquer dispositivo - tudo junto, na mesma ordem que voce enviou</small><br><br>
+<button class="btn-anexar" id="btnAnexar" type="button">📎 ANEXAR TUDO</button>
+<input id="inputUnico" type="file" multiple hidden>
+</div>
+<div id="lista" class="card">Nenhum arquivo anexado ainda.
+Arraste o ZIP ou clique em ANEXAR TUDO.</div>
+
+<label><b>4. Confirme:</b></label>
+<button class="btn-confirmar" id="btnConfirmar" type="button">✅ CONFIRMAR - ENVIAR TUDO JA ARRUMADO</button>
+<div id="log">Aguardando token...</div>
+<script>
+(function(){
+'use strict';
+var OWNER='sistemak', REPO='korvil-app2', BRANCH='main';
+var arquivos=[];
+var excluiuTudo=false;
+function el(id){return document.getElementById(id);}
+function log(m,c){var d=document.createElement('div');if(c)d.className=c;d.textContent=m;el('log').appendChild(d);el('log').scrollTop=99999;}
+function cleanToken(t){if(!t)return '';t=String(t).trim();t=t.replace(/[\r\n\t ]/g,'');if(t.charAt(0)==='"'||t.charAt(0)==="'")t=t.slice(1);if(t.slice(-1)==='"'||t.slice(-1)==="'")t=t.slice(0,-1);t=t.replace(/^Bearer\s+/i,'').replace(/^token\s+/i,'');return t;}
+function getToken(){var t=cleanToken(el('token').value);if(!t){alert('Cole o REPO_TOKEN primeiro');throw new Error('sem token');}if(t.length<20){alert('Token curto demais ('+t.length+'). Cola o token completo ghp_...');throw new Error('token curto');}el('token').value=t;try{localStorage.setItem('MESTRE_TOKEN',t);}catch(e){}el('infoToken').textContent='Token: '+t.length+' caracteres • '+t.slice(0,4)+'...'+t.slice(-4);return t;}
+function mostrarInfo(){var t=cleanToken(el('token').value);el('infoToken').textContent=t?('Token: '+t.length+' caracteres • '+t.slice(0,4)+'...'+t.slice(-4)):'';}
+try{var s=localStorage.getItem('MESTRE_TOKEN');if(s)el('token').value=s;}catch(e){} mostrarInfo();
+el('token').addEventListener('input',mostrarInfo);
+el('token').addEventListener('paste',function(){setTimeout(mostrarInfo,50);});
+async function testar(){try{var t=getToken();el('log').innerHTML='';log('Testando acesso em https://github.com/sistemak/korvil-app2 ...','warn');var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});var texto=await r.text();var j={};try{j=JSON.parse(texto);}catch(e){}if(!r.ok){var msg=j.message||texto.slice(0,300);if(r.status===401)throw new Error('401 - Token invalido / expirado. Gera um novo Tokens (classic) com escopo repo.');if(r.status===403)throw new Error('403 - Token sem permissao repo.');if(r.status===404)throw new Error('404 - Repo nao achado ou token sem acesso.');throw new Error('Erro '+r.status+' - '+msg);}log('✅ ACESSO ATIVADO! Repo: '+j.full_name,'ok');log('Agora clique em EXCLUIR TUDO, depois anexe o ZIP, depois CONFIRMAR.','warn');}catch(e){log('❌ '+e.message,'err');}}
+// --- Arrume SO nome + numeros antigos, NAO muda base ---
+function corrigirCaminhos(texto){
+  if(typeof texto!=='string') return texto;
+  var PLACE='__KORVILAPP2_OK_9Z__';
+  // 1. Protege o que ja esta certo
+  texto=texto.split('sistemak/korvil-app2').join(PLACE);
+  // 2. Troca so o nome do repo errado -> certo (base intacta)
+  texto=texto.split('sistemak/korvil-app').join('sistemak/korvil-app2');
+  texto=texto.split(PLACE).join('sistemak/korvil-app2');
+  // 3. Tira numeros antigos / sha antigos dos links e deixa com main
+  // Ex: /blob/235d9eb.../ -> /blob/main/  |  /tree/235d9eb.../ -> /tree/main/
+  // Ex: raw.githubusercontent.com/sistemak/korvil-app2/235d9eb.../ -> .../main/
+  // So troca quando tem 40 caracteres hex (sha) ou 7+ hex apos blob/tree/raw, nao mexe em nome de arquivo
+  texto=texto.replace(/\/(blob|tree)\/[0-9a-f]{7,40}(\/|"|'|\?|#|$)/gi, '/$1/main$2');
+  texto=texto.replace(/(raw\.githubusercontent\.com\/sistemak\/korvil-app2\/)[0-9a-f]{7,40}(\/)/gi, '$1main$2');
+  texto=texto.replace(/(\/commit\/)[0-9a-f]{7,40}/gi, '$1main');
+  return texto;
+}
+function ehTexto(nome){return /\.(html|htm|css|js|jsx|ts|tsx|json|md|txt|xml|svg|yml|yaml|toml|env|gitignore|csv|vue|php|py)$/i.test(nome);}
+function limparPath(p){return String(p).replace(/^\.\//,'').replace(/^\/+/,'').replace(/\\/g,'/');}
+function atualizarLista(){
+  if(!arquivos.length){el('lista').textContent='Nenhum arquivo anexado ainda.\nArraste o ZIP ou clique em ANEXAR TUDO.';return;}
+  var html='<b>'+arquivos.length+' arquivo(s) - NA MESMA ORDEM QUE VOCE ENVIOU:</b>\n';
+  for(var i=0;i<arquivos.length;i++){html+=(i+1)+'. '+arquivos[i].path+'\n';}
+  el('lista').textContent=html;
+}
+function jaExiste(path){return arquivos.some(function(a){return a.path===path;});}
+async function addFile(path, fileOrBlob){
+  path=limparPath(path);
+  if(!path||path.indexOf('__MACOSX/')===0||path.slice(-1)==='/')return;
+  if(path.toLowerCase().indexOf('.ds_store')>=0)return;
+  if(jaExiste(path))return;
+  var buf=await fileOrBlob.arrayBuffer();
+  arquivos.push({path:path, bytes:new Uint8Array(buf)});
+}
+async function addZip(file){
+  if(typeof JSZip==='undefined'){log('❌ JSZip nao carregou. Verifique a internet e tente de novo.','err');return;}
+  log('ZIP detectado - extraindo tudo mantendo ordem e estrutura: '+file.name,'warn');
+  var zip=await JSZip.loadAsync(file);
+  var nomes=Object.keys(zip.files); // ordem EXATA do ZIP
+  for(var i=0;i<nomes.length;i++){var entry=zip.files[nomes[i]];if(entry.dir)continue;var p=limparPath(nomes[i]);if(jaExiste(p))continue;var data=await entry.async('uint8array');arquivos.push({path:p, bytes:data});}
+  log('ZIP extraido: '+nomes.length+' entradas, na mesma ordem','ok');
+}
+async function lerTodasEntradas(reader){
+  var todas=[];
+  while(true){var lote=await new Promise(function(res,rej){reader.readEntries(res,rej);});if(!lote.length)break;todas=todas.concat(lote);}
+  return todas;
+}
+async function percorrerEntry(entry, prefix){
+  prefix=prefix||'';
+  if(entry.isFile){var f=await new Promise(function(res,rej){entry.file(res,rej);});await addFile(prefix+entry.name, f);}
+  else if(entry.isDirectory){var reader=entry.createReader();var lista=await lerTodasEntradas(reader);for(var i=0;i<lista.length;i++){await percorrerEntry(lista[i], prefix+entry.name+'/');}}
+}
+async function percorrerHandle(handle, prefix){
+  prefix=prefix||'';
+  if(handle.kind==='file'){var f=await handle.getFile();await addFile(prefix+handle.name, f);}
+  else if(handle.kind==='directory'){for await(var entry of handle.values()){await percorrerHandle(entry, prefix+handle.name+'/');}}
+}
+async function anexarTudo(origem){
+  if(origem && origem.files && origem.files.length && !origem.items){
+    var fl=origem.files;
+    for(var i=0;i<fl.length;i++){var f=fl[i];
+      if(f.name.toLowerCase().slice(-4)==='.zip'){await addZip(f);}
+      else{var rel=f.webkitRelativePath||f.name;await addFile(rel, f);}
+    }
+  } else if(origem && origem.items){
+    var items=Array.prototype.slice.call(origem.items);
+    for(var j=0;j<items.length;j++){var it=items[j];
+      var handleOk=false;
+      if(it.getAsFileSystemHandle){try{var h=await it.getAsFileSystemHandle();if(h){handleOk=true;await percorrerHandle(h,'');}}catch(e){}}
+      if(handleOk)continue;
+      var entry=it.webkitGetAsEntry?it.webkitGetAsEntry():null;
+      if(entry){await percorrerEntry(entry,'');}
+      else if(it.getAsFile){var ff=it.getAsFile();if(ff){if(ff.name.toLowerCase().slice(-4)==='.zip')await addZip(ff);else await addFile(ff.name, ff);}}
+    }
+  } else if(origem instanceof File){
+    if(origem.name.toLowerCase().slice(-4)==='.zip')await addZip(origem);
+    else await addFile(origem.name, origem);
+  }
+  atualizarLista();
+  log('✅ TUDO anexado junto. Total: '+arquivos.length+' arquivo(s) - mesma ordem e mesma estrutura','ok');
+}
+el('btnAnexar').addEventListener('click',function(){el('inputUnico').click();});
+el('inputUnico').addEventListener('change',function(){anexarTudo(this);this.value='';});
+var drop=el('drop');
+['dragenter','dragover'].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add('dragover');});});
+['dragleave','drop'].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove('dragover');});});
+drop.addEventListener('drop',function(e){anexarTudo(e.dataTransfer);});
+document.body.addEventListener('dragover',function(e){e.preventDefault();});
+document.body.addEventListener('drop',function(e){if(e.target!==drop){e.preventDefault();anexarTudo(e.dataTransfer);}});
+// --- BOTAO EXCLUIR: exclui tudo, espera terminar, sozinho ---
+async function excluirTudo(){
+  try{
+    var token=getToken();
+    if(!confirm('EXCLUIR TODAS as pastas / arquivos / codigos antigos de https://github.com/sistemak/korvil-app2 ?\n\nDepois disso o repo fica vazio. So depois voce anexa o ZIP e clica em CONFIRMAR.'))return;
+    el('log').innerHTML='';
+    el('statusExcluir').textContent='Excluindo... aguarde terminar.';
+    log('Excluindo TODOS os antigos...','warn');
+    excluiuTudo=false;
+    var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/trees/'+BRANCH+'?recursive=1',{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
+    var j=await r.json();
+    if(!r.ok)throw new Error('Nao consegui listar antigos: '+r.status+' '+(j.message||''));
+    var antigos=(j.tree||[]).filter(function(x){return x.type==='blob';});
+    log('Antigos encontrados: '+antigos.length+' arquivo(s). Excluindo um por um, esperando terminar...','warn');
+    var apagados=0, falhas=0;
+    // Exclui UM POR UM, sem paralelo, pra nao dar 409 / 422
+    for(var i=0;i<antigos.length;i++){var f=antigos[i];
+      try{
+        var del=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+f.path.split('/').map(encodeURIComponent).join('/'),{method:'DELETE',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'MESTRE: excluir antigo '+f.path,sha:f.sha,branch:BRANCH})});
+        if(del.ok){apagados++;if(apagados%20===0||apagados===antigos.length)log('Excluidos: '+apagados+'/'+antigos.length,'ok');}
+        else{falhas++;log('❌ Falhou excluir '+f.path+' -> '+del.status,'err');}
+      }catch(e){falhas++;log('❌ Erro excluir '+f.path+': '+e.message,'err');}
+      await new Promise(function(res){setTimeout(res,150);});
+    }
+    excluiuTudo=true;
+    el('statusExcluir').textContent='✅ Tudo excluido: '+apagados+' de '+antigos.length+' (falhas: '+falhas+'). Agora anexe o ZIP e clique em CONFIRMAR.';
+    log('✅ EXCLUSAO TERMINADA: '+apagados+' apagados, '+falhas+' falhas. Repo limpo. Agora anexe o ZIP.','ok');
+  }catch(e){log('❌ '+e.message,'err');}
+}
+// --- CONFIRMAR: so envia, nao exclui de novo (pra nao brigar) ---
+function paraBase64(bytes){var bin='';var chunk=0x8000;for(var i=0;i<bytes.length;i+=chunk){bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));}return btoa(bin);}
+async function enviarUm(token, arquivo){
+  var path=arquivo.path;
+  var conteudoB64;
+  if(ehTexto(path)){
+    var texto=new TextDecoder().decode(arquivo.bytes);
+    var corrigido=corrigirCaminhos(texto);
+    conteudoB64=btoa(unescape(encodeURIComponent(corrigido)));
+  }else{conteudoB64=paraBase64(arquivo.bytes);}
+  // Busca sha FRESCO na hora, pra nao usar sha velho e nao dar 409 / 422
+  var sha=null;
+  var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/')+'?ref='+BRANCH,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
+  if(get.ok){var gj=await get.json();if(gj.sha)sha=gj.sha;}
+  var body={message:'MESTRE: importar '+path+' (arrumado para korvil-app2)',content:conteudoB64,branch:BRANCH};
+  if(sha)body.sha=sha;
+  var put=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!put.ok){var t=await put.text();throw new Error(put.status+' '+t.slice(0,300));}
+  return path;
+}
+async function confirmar(){
+  try{
+    var token=getToken();
+    if(!arquivos.length){alert('Anexe o ZIP primeiro.');return;}
+    if(!excluiuTudo){if(!confirm('Voce ainda nao clicou em EXCLUIR TUDO. Quer enviar mesmo assim? Se tiver arquivo antigo igual, pode dar erro de duplicado. Continuar?'))return;}
+    if(!confirm('CONFIRMAR envio de '+arquivos.length+' arquivo(s) para https://github.com/sistemak/korvil-app2/tree/main ?\n\n- Ja arrumado: sistemak/korvil-app -> sistemak/korvil-app2\n- Numeros / sha antigos nos links -> main\n- Base dos links igual, nada inventado'))return;
+    el('log').innerHTML='';
+    log('Enviando '+arquivos.length+' arquivo(s) ja arrumados, na mesma ordem...','warn');
+    var inicio=Date.now();
+    var concluidos=0, falhas=0;
+    // Envia UM POR UM na ordem, pra nao dar 409 / 422 por paralelo
+    for(var i=0;i<arquivos.length;i++){var arq=arquivos[i];
+      try{await enviarUm(token, arq);concluidos++;if(concluidos%10===0||concluidos===arquivos.length)log('Progresso: '+concluidos+'/'+arquivos.length,'ok');}
+      catch(e){falhas++;log('❌ Falhou '+arq.path+': '+e.message,'err');}
+      await new Promise(function(res){setTimeout(res,120);});
+    }
+    var seg=((Date.now()-inicio)/1000).toFixed(1);
+    log('🎉 PRONTO em '+seg+'s: '+concluidos+' enviados arrumados, '+falhas+' falhas de '+arquivos.length,'ok');
+    log('Confira em: https://github.com/sistemak/korvil-app2/tree/main','ok');
+  }catch(e){log('❌ '+e.message,'err');}
+}
+el('btnTestar').addEventListener('click',testar);
+el('btnExcluir').addEventListener('click',excluirTudo);
+el('btnConfirmar').addEventListener('click',confirmar);
+log('MESTRE carregado - ATIVAR > EXCLUIR TUDO > ANEXAR ZIP > CONFIRMAR. Separado pra nao dar 409 / 422.');
+})();
+</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
