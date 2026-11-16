@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DZ Monster - MENSALIDADES</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0e1117;color:#e6e8eb;font-family:Inter,system-ui,sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.pdf-wrap{position:fixed;z-index:9999;top:20px;right:20px;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.pdf-button{display:flex;align-items:center;gap:8px;background:#00ff88;color:#000;padding:14px 28px;border-radius:50px;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1;border:0;cursor:pointer;box-shadow:0 4px 20px rgba(0,255,136,.4);animation:pulse 2s infinite}
+@keyframes pulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(0,255,136,.7),0 4px 20px rgba(0,255,136,.4)}70%{transform:scale(1.05);box-shadow:0 0 0 12px rgba(0,255,136,0),0 4px 24px rgba(0,255,136,.5)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(0,255,136,0),0 4px 20px rgba(0,255,136,.4)}}
+.pdf-status{font-size:10px;padding:6px 12px;border-radius:999px;background:#151a24;color:#00ff88;border:1px solid #00ff8833}
+.hero{width:100%;border-bottom:1px solid #1e2a3a;background:#0e1117}
+.hero-inner{max-width:1120px;margin:0 auto;padding:28px 16px;display:flex;align-items:center;gap:20px}
+.ktp-logo{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#3a3a3a;border:1px solid #3a3a3a}
+.ktp-logo img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+.hero h1{font-size:20px;font-weight:800;line-height:.95;letter-spacing:-.02em;margin:0}
+.hero h1 span{color:#7dd3e0}
+.page-header{width:100%;background:#1a2332;border-bottom:1px solid #1e2a3a}
+.header-inner{max-width:1120px;margin:0 auto;padding:0 16px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header-title{font-weight:800;font-size:13px;color:#7dd3e0}
+.badges{display:flex;gap:8px}
+.badge{font-size:11px;padding:4px 10px;border-radius:999px;background:#151a24;color:#7dd3e0;border:1px solid #1e2a3a;white-space:nowrap}
+.badge-green{background:#00ff881a;color:#00ff88;border-color:#00ff8833}
+.main{max-width:1120px;margin:0 auto;padding:24px 16px 32px}
+.card{border-radius:16px;border:1px solid #1e2a3a;background:#151a24;overflow:hidden}
+.card-head{padding:16px;display:flex;justify-content:space-between;border-bottom:1px solid #1e2a3a}
+.card-title-wrap{display:flex;align-items:center;gap:12px}
+.title-bar{width:6px;height:24px;border-radius:999px;background:#7dd3e0}
+.title-bar-green{background:#00ff88}
+.card-head h2{font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0}
+.formula-note{font-size:11px;opacity:.5;display:none}
+.table-scroll{overflow-x:auto}
+table{width:100%;min-width:1000px;border-collapse:collapse}
+thead tr{text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:rgba(230,232,235,.6);border-bottom:1px solid #1e2a3a;background:#0e1117}
+th{padding:12px;font-weight:600;vertical-align:bottom}
+td{padding:14px 12px}
+tbody{font-size:13px}
+tbody tr{border-bottom:1px solid #1e2a3a}
+tbody tr:last-child{border-bottom:0}
+.cell-name{padding-left:20px}
+.student-name{font-weight:600;font-size:13px}
+.plan{color:#7dd3e0}
+.center{text-align:center}
+.days{font-size:12px;opacity:.8}
+.due{opacity:.7}
+.cell-right{text-align:right;padding-right:20px}
+.header-logo-stack{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:130px}
+.header-logo-stack span:last-child{font-size:10px;line-height:1;text-align:center}
+.mini-logo{width:64px;height:64px;border-radius:50%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.mini-logo img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+.days-pill{display:inline-flex;align-items:center;justify-content:center;min-width:46px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:12px}
+.mobile-note{display:block;padding:10px 16px;font-size:10px;opacity:.4;border-top:1px solid #1e2a3a}
+.card-footer{border-top:1px solid #1e2a3a;padding:16px;display:flex;flex-direction:column;gap:8px;background:#1a2332}
+.footer-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.footer-total-wrap{display:flex;gap:12px;flex-wrap:wrap}
+.footer-total{font-size:18px;font-weight:800;color:#00ff88}
+.footer-badge{font-size:11px;padding:2px 8px;border-radius:999px;background:#00ff8815;color:#00ff88;border:1px solid #00ff8830}
+@media(min-width:768px){.hero-inner{padding:36px 24px}.ktp-logo{width:130px;height:130px}.hero h1{font-size:30px}.header-inner{padding:0 24px;height:64px}.header-title{font-size:16px}.main{padding:32px 24px}.card-head,.card-footer{padding:16px 24px}.formula-note{display:block}.mobile-note{display:none}.card-footer{flex-direction:row;align-items:center}.footer-total{font-size:20px}}
+@media(max-width:560px){.pdf-button{padding:11px 18px;font-size:12px}.hero-inner{padding-right:150px}}
+</style>
+</head>
+<body>
+<div class="pdf-wrap">
+  <button class="pdf-button" onclick="baixarPDF()">⬇ BAIXAR PDF</button>
+  <div id="pdfStatus" class="pdf-status mono" style="display:none"></div>
+</div>
+<div id="capture">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="ktp-logo"><img src="WA_1794216050877.png" alt="K-TP" onerror="this.style.display='none'"></div>
+      <h1>K-TP Projeto<br><span>TRANSFORMAÇÃO</span></h1>
+    </div>
+  </div>
+  <header class="page-header">
+    <div class="header-inner">
+      <span class="header-title">DZ Monster - MENSALIDADES</span>
+      <div class="badges">
+        <span class="badge mono">hojeDia = <span id="hojeDia"></span></span>
+        <span class="badge badge-green mono">● 3 ATIVOS</span>
+      </div>
+    </div>
+  </header>
+  <main class="main">
+    <section class="card">
+      <div class="card-head">
+        <div class="card-title-wrap"><div class="title-bar"></div><h2>Controle de Mensalidades</h2></div>
+        <div class="mono formula-note">fórmula: vencDia - hojeDia ≤0 → +30</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="cell-name">Aluno</th>
+              <th>Plano</th>
+              <th><div class="header-logo-stack"><div class="mini-logo"><img src="WA_1794216018513.png" alt="Projeto Transformação" onerror="this.style.display='none'"></div><span>Valor Projeto</span></div></th>
+              <th><div class="header-logo-stack"><div class="mini-logo"><img src="WA_1794216067938.png" alt="DZ Monster" onerror="this.style.display='none'"></div><span>50% DZ</span></div></th>
+              <th>Dias / Semana</th>
+              <th>Horário</th>
+              <th>Venc.</th>
+              <th class="cell-right">Dias Rest.</th>
+            </tr>
+          </thead>
+          <tbody class="mono" id="tabelaAlunos"></tbody>
+        </table>
+      </div>
+      <div class="mobile-note mono">Arraste para o lado → tabela completa</div>
+      <div class="card-footer">
+        <div class="card-title-wrap"><div class="title-bar title-bar-green"></div><span class="mono footer-label">TOTAL GERAL DZ 50%</span></div>
+        <div class="footer-total-wrap"><span class="footer-total">R$ 150,00</span><span class="mono footer-badge">3 ativos • 3x R$50</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+const alunos = [
+  { nome:"Hellem Vitória Carvalho dos Santos", plano:"3x", valor:100, dz:50, dias:"Ter, Qui, Sex", horario:"08:00", venc:"06/07/2026" },
+  { nome:"Maria Carla Carvalho Santos", plano:"3x", valor:100, dz:50, dias:"Ter, Qui, Sex", horario:"08:00", venc:"06/07/2026" },
+  { nome:"Natalia Pereira Simões de Mello", plano:"3x", valor:100, dz:50, dias:"Seg, Qua, Sex", horario:"08:00", venc:"15/10/2026" }
+];
+const hoje = new Date().getDate();
+document.getElementById("hojeDia").textContent = hoje;
+function diasRest(venc){ let r = parseInt(venc.split("/")[0],10) - hoje; if(r <= 0) r += 30; return r; }
+function corPill(d){ if(d <= 7) return "background:#ff44441a;color:#ff8a8a;border:1px solid #ff444433"; if(d <= 16) return "background:#7dd3e01a;color:#7dd3e0;border:1px solid #7dd3e033"; return "background:#00ff8812;color:#00ff88;border:1px solid #00ff8822"; }
+document.getElementById("tabelaAlunos").innerHTML = alunos.map(a=>{ const d = diasRest(a.venc); return `<tr><td class="cell-name"><span class="student-name">${a.nome}</span></td><td class="plan">${a.plano}</td><td class="center">R$ ${a.valor}</td><td class="center">R$ ${a.dz}</td><td class="days">${a.dias}</td><td>${a.horario}</td><td class="due">${a.venc}</td><td class="cell-right"><span class="days-pill" style="${corPill(d)}">${d}d</span></td></tr>`; }).join("");
+async function baixarPDF(){
+  const status = document.getElementById("pdfStatus");
+  status.style.display = "block"; status.textContent = "Gerando PDF...";
+  try{
+    const el = document.getElementById("capture");
+    const canvas = await html2canvas(el, {
+      scale: 2, backgroundColor: "#0e1117", useCORS: true, logging: false,
+      windowWidth: 1200,
+      onclone: (doc) => { const s = doc.querySelector(".table-scroll"); if(s) s.style.overflow = "visible"; }
+    });
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const { jsPDF } = window.jspdf;
+    const pageW = 210;
+    const pageH = (canvas.height * pageW) / canvas.width;
+    const pdf = new jsPDF({ orientation: pageH > pageW ? "portrait" : "landscape", unit: "mm", format: [pageW, pageH] });
+    pdf.addImage(imgData, "JPEG", 0, 0, pageW, pageH);
+    pdf.save("cronograma-dz.pdf");
+    status.textContent = "PDF baixado!";
+    setTimeout(()=> status.style.display="none", 3000);
+  }catch(e){ status.textContent = "Não foi possível gerar o PDF. Tente novamente."; }
+}
+</script>
+</body>
+</html>
