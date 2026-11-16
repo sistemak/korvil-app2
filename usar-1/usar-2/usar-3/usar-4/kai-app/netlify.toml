@@ -1,8 +1,0 @@
-[build]
-  publish = "kai-app"
-  functions = "api"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
