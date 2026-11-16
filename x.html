@@ -21,42 +21,46 @@
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
 </style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MESTRE - Importar + Corrigir Caminhos para korvil-app2</title>
+<title>MESTRE - Anexar Tudo + Corrigir Repo para korvil-app2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<style>*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:700px;margin:auto}
+<style>*{box-sizing:border-box;font-family:Arial}body{background:#0b0714;color:#fff;padding:20px;max-width:760px;margin:auto}
 h1{color:#a855f7}input{width:100%;padding:16px;border-radius:12px;border:1px solid #444;background:#1a1030;color:#fff;margin:10px 0;font-size:16px}
 button{width:100%;padding:18px;border:0;border-radius:14px;font-weight:900;font-size:18px;cursor:pointer;margin-top:10px}
 .btn-testar{background:#a855f7;color:#fff}.btn-confirmar{background:#22c55e;color:#000}.btn-anexar{background:#2563eb;color:#fff}
-#drop{border:2px dashed #a855f7;border-radius:16px;padding:28px;text-align:center;margin:14px 0;background:#1a1030}
+#drop{border:3px dashed #a855f7;border-radius:16px;padding:28px;text-align:center;margin:14px 0;background:#1a1030}
 #drop.dragover{border-color:#22c55e;background:#0f2a1a}
-#log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:240px;max-height:500px;overflow:auto}
-.ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}.card{background:#1a1030;border:1px solid #444;border-radius:14px;padding:14px;margin:14px 0}
+#log{background:#000;border:1px solid #333;border-radius:12px;padding:14px;margin-top:16px;white-space:pre-wrap;font-size:13px;min-height:240px;max-height:520px;overflow:auto}
+.ok{color:#22c55e}.err{color:#ff4444}.warn{color:#ffcc00}.card{background:#1a1030;border:1px solid #444;border-radius:14px;padding:14px;margin:14px 0;white-space:pre-wrap;font-family:monospace;font-size:12px}
 small{color:#b7a8d9}</style></head>
-<body><h1>MESTRE - Importar para korvil-app2</h1>
-<div class="card"><b>De:</b> sistemak/korvil-app (caminhos errados)<br><b>Para:</b> sistemak/korvil-app2<br><small>Arrume todos os arquivos que tiverem <b>sistemak/korvil-app</b> e mude para <b>sistemak/korvil-app2</b>, mantendo a mesma estrutura de pastas, arquivos e códigos.</small></div>
+<body><h1>MESTRE - Anexar Tudo + Corrigir Repo</h1>
+<div class="card"><b>Regra exata:</b>
+- Mantém EXATAMENTE a mesma estrutura de pastas / arquivos / códigos
+- NÃO muda a base dos links (https://github.com/, https://api.github.com/, etc. ficam iguais)
+- Só arruma o que estiver com repositório errado:
+  sistemak/korvil-app  →  sistemak/korvil-app2
+- Destino: https://github.com/sistemak/korvil-app2</div>
 <label><b>1. Cole seu REPO_TOKEN:</b></label><input id="token" type="password" placeholder="ghp_... cole aqui" autocomplete="off">
 <div id="infoToken" style="font-size:12px;color:#b7a8d9"></div>
 <button class="btn-testar" id="btnTestar" type="button">ATIVAR</button>
 
-<label><b>2. Anexe pastas / arquivos / ZIP:</b></label>
-<div id="drop"><b>Arraste aqui</b><br><small>Pastas, arquivos individuais, pastas individuais ou ZIP completo compactado ou já extraído<br>De qualquer dispositivo</small><br><br>
-<button class="btn-anexar" id="btnAnexar" type="button">📎 ANEXAR ARQUIVOS</button>
-<button class="btn-anexar" id="btnAnexarPasta" type="button">📁 ANEXAR PASTA</button>
-<button class="btn-anexar" id="btnAnexarZip" type="button">🗜️ ANEXAR ZIP</button>
+<label><b>2. Anexe TUDO de uma vez - arraste ou clique:</b></label>
+<div id="drop"><b>⬇️ ARRASTE AQUI TUDO DE UMA VEZ</b><br><small>Pastas, subpastas, arquivos, códigos, imagens, ZIP completo ou pasta já extraída<br>De qualquer dispositivo - celular, tablet, PC<br><b>Você anexa 1 vez, não envia individualmente</b></small><br><br>
+<button class="btn-anexar" id="btnAnexar" type="button">📎 ANEXAR TUDO (arquivos + pastas)</button>
+<button class="btn-anexar" id="btnAnexarPasta" type="button">📁 ANEXAR PASTA INTEIRA</button>
 <input id="inputFiles" type="file" multiple hidden>
 <input id="inputFolder" type="file" multiple webkitdirectory hidden>
-<input id="inputZip" type="file" accept=".zip" hidden>
 </div>
-<div id="lista" class="card">Nenhum arquivo anexado ainda.</div>
+<div id="lista" class="card">Nenhum arquivo anexado ainda.
+Arraste a pasta / arquivos aqui que eu mostro a estrutura exata antes de confirmar.</div>
 
-<label><b>3. Confirme:</b></label>
-<button class="btn-confirmar" id="btnConfirmar" type="button">✅ CONFIRMAR E IMPORTAR TUDO PARA korvil-app2</button>
+<label><b>3. Um clique só importa tudo:</b></label>
+<button class="btn-confirmar" id="btnConfirmar" type="button">✅ CONFIRMAR - CORRIGIR CAMINHOS E IMPORTAR TUDO DE UMA VEZ</button>
 <div id="log">Aguardando token...</div>
 <script>
 (function(){
 'use strict';
 var OWNER='sistemak', REPO='korvil-app2', BRANCH='main';
-var arquivos=[]; // {path, content: Uint8Array ou string, isBinary}
+var arquivos=[]; // {path, bytes} path = estrutura EXATA como estava no dispositivo
 function el(id){return document.getElementById(id);}
 function log(m,c){var d=document.createElement('div');if(c)d.className=c;d.textContent=m;el('log').appendChild(d);el('log').scrollTop=99999;}
 function cleanToken(t){if(!t)return '';t=String(t).trim();t=t.replace(/[\r\n\t ]/g,'');if(t.charAt(0)==='"'||t.charAt(0)==="'")t=t.slice(1);if(t.slice(-1)==='"'||t.slice(-1)==="'")t=t.slice(0,-1);t=t.replace(/^Bearer\s+/i,'').replace(/^token\s+/i,'');return t;}
@@ -65,100 +69,113 @@ function mostrarInfo(){var t=cleanToken(el('token').value);el('infoToken').textC
 try{var s=localStorage.getItem('MESTRE_TOKEN');if(s)el('token').value=s;}catch(e){} mostrarInfo();
 el('token').addEventListener('input',mostrarInfo);
 el('token').addEventListener('paste',function(){setTimeout(mostrarInfo,50);});
-async function testar(){try{var t=getToken();el('log').innerHTML='';log('Testando acesso em https://github.com/sistemak/korvil-app2 ...','warn');var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});var texto=await r.text();var j={};try{j=JSON.parse(texto);}catch(e){}if(!r.ok){var msg=j.message||texto.slice(0,300);if(r.status===401)throw new Error('401 - Token invalido / expirado. Gera um novo Tokens (classic) com escopo repo. GitHub disse: '+msg);if(r.status===403)throw new Error('403 - Token sem permissao repo. GitHub disse: '+msg);if(r.status===404)throw new Error('404 - Repo nao achado ou token sem acesso. GitHub disse: '+msg);throw new Error('Erro '+r.status+' - '+msg);}log('✅ ACESSO ATIVADO! Repo: '+j.full_name,'ok');log('Agora anexe pastas / arquivos / ZIP e clique em CONFIRMAR.','warn');}catch(e){log('❌ '+e.message,'err');}}
-// --- Correcao de caminhos: so troca sistemak/korvil-app (sem o 2) -> sistemak/korvil-app2 ---
+async function testar(){try{var t=getToken();el('log').innerHTML='';log('Testando acesso em https://github.com/sistemak/korvil-app2 ...','warn');var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});var texto=await r.text();var j={};try{j=JSON.parse(texto);}catch(e){}if(!r.ok){var msg=j.message||texto.slice(0,300);if(r.status===401)throw new Error('401 - Token invalido / expirado. Gera um novo Tokens (classic) com escopo repo.');if(r.status===403)throw new Error('403 - Token sem permissao repo.');if(r.status===404)throw new Error('404 - Repo nao achado ou token sem acesso.');throw new Error('Erro '+r.status+' - '+msg);}log('✅ ACESSO ATIVADO! Repo: '+j.full_name,'ok');log('Agora arraste / anexe TUDO de uma vez e clique em CONFIRMAR. Voce nao envia individualmente.','warn');}catch(e){log('❌ '+e.message,'err');}}
+// --- Correcao: SO troca o repositorio, NAO muda a base do link ---
+// Ex: https://github.com/sistemak/korvil-app  -> https://github.com/sistemak/korvil-app2 (base https://github.com/ fica igual)
+// Ex: https://api.github.com/repos/sistemak/korvil-app -> .../sistemak/korvil-app2 (base fica igual)
+// Ex: sistemak/korvil-app2 ja certo -> nao mexe
 function corrigirCaminhos(texto){
   if(typeof texto!=='string') return texto;
-  var antes=texto;
-  // Evita trocar o que ja esta certo: protege korvil-app2 temporariamente
-  var PLACE='__KORVILAPP2_OK__';
+  var PLACE='__KORVILAPP2_OK_9Z__';
   texto=texto.split('sistemak/korvil-app2').join(PLACE);
   texto=texto.split('sistemak/korvil-app').join('sistemak/korvil-app2');
   texto=texto.split(PLACE).join('sistemak/korvil-app2');
   return texto;
 }
-function ehTexto(nome){return /\.(html|htm|css|js|jsx|ts|tsx|json|md|txt|xml|svg|yml|yaml|toml|env|gitignore|csv|vue)$/i.test(nome);}
+function ehTexto(nome){return /\.(html|htm|css|js|jsx|ts|tsx|json|md|txt|xml|svg|yml|yaml|toml|env|gitignore|csv|vue|php|py)$/i.test(nome);}
 function limparPath(p){return String(p).replace(/^\.\//,'').replace(/^\/+/,'').replace(/\\/g,'/');}
 function atualizarLista(){
-  if(!arquivos.length){el('lista').textContent='Nenhum arquivo anexado ainda.';return;}
-  var html='<b>'+arquivos.length+' arquivo(s) anexado(s):</b><br><small>';
-  arquivos.slice(0,100).forEach(function(f){html+=f.path+'<br>';});
-  if(arquivos.length>100)html+='... e mais '+(arquivos.length-100)+' arquivos<br>';
-  html+='</small>';
-  el('lista').innerHTML=html;
+  if(!arquivos.length){el('lista').textContent='Nenhum arquivo anexado ainda.\nArraste a pasta / arquivos aqui que eu mostro a estrutura exata antes de confirmar.';return;}
+  // Mostra em arvore, exatamente como estava
+  var ordenados=arquivos.slice().sort(function(a,b){return a.path<b.path?-1:1;});
+  var html='<b>'+arquivos.length+' arquivo(s) anexado(s) - ESTRUTURA EXATA:</b>\n';
+  ordenados.forEach(function(f){html+=f.path+'\n';});
+  html+='\nNada sera enviado individualmente. Tudo vai junto em 1 CONFIRMAR.';
+  el('lista').textContent=html;
 }
+function jaExiste(path){return arquivos.some(function(a){return a.path===path;});}
 async function addFile(path, fileOrBlob){
   path=limparPath(path);
   if(!path||path.indexOf('__MACOSX/')===0||path.slice(-1)==='/')return;
   if(path.toLowerCase().indexOf('.ds_store')>=0)return;
+  if(jaExiste(path))return; // nao duplica
   var buf=await fileOrBlob.arrayBuffer();
-  var bytes=new Uint8Array(buf);
-  arquivos.push({path:path, bytes:bytes});
+  arquivos.push({path:path, bytes:new Uint8Array(buf)});
 }
 async function addZip(file){
   if(typeof JSZip==='undefined'){log('❌ JSZip nao carregou. Verifique a internet e tente de novo.','err');return;}
-  log('Descompactando ZIP: '+file.name+' ...','warn');
+  log('Descompactando ZIP (mantendo estrutura exata): '+file.name+' ...','warn');
   var zip=await JSZip.loadAsync(file);
-  var nomes=Object.keys(zip.files);
-  for(var i=0;i<nomes.length;i++){var entry=zip.files[nomes[i]];if(entry.dir)continue;var p=limparPath(nomes[i]);
-    // Se o ZIP tem uma pasta raiz unica (ex: meu-projeto/...), mantem como esta - mesma estrutura do ZIP
-    var data=await entry.async('uint8array');arquivos.push({path:p, bytes:data});}
-  log('ZIP lido: '+nomes.length+' entradas','ok');
+  var nomes=Object.keys(zip.files).sort();
+  for(var i=0;i<nomes.length;i++){var entry=zip.files[nomes[i]];if(entry.dir)continue;var p=limparPath(nomes[i]);if(jaExiste(p))continue;var data=await entry.async('uint8array');arquivos.push({path:p, bytes:data});}
+  log('ZIP lido mantendo estrutura: '+nomes.length+' entradas','ok');
+}
+// Le TODAS as entradas de um diretorio, sem perder arquivos (loop ate esvaziar)
+async function lerTodasEntradas(reader){
+  var todas=[];
+  while(true){var lote=await new Promise(function(res,rej){reader.readEntries(res,rej);});if(!lote.length)break;todas=todas.concat(lote);}
+  return todas;
 }
 async function percorrerEntry(entry, prefix){
   prefix=prefix||'';
   if(entry.isFile){var f=await new Promise(function(res,rej){entry.file(res,rej);});await addFile(prefix+entry.name, f);}
-  else if(entry.isDirectory){var reader=entry.createReader();var batch=await new Promise(function(res,rej){reader.readEntries(res,rej);});for(var i=0;i<batch.length;i++){await percorrerEntry(batch[i], prefix+entry.name+'/');}}
+  else if(entry.isDirectory){var reader=entry.createReader();var lista=await lerTodasEntradas(reader);for(var i=0;i<lista.length;i++){await percorrerEntry(lista[i], prefix+entry.name+'/');}}
+}
+// FileSystemHandle moderno (Chrome novo / Android)
+async function percorrerHandle(handle, prefix){
+  prefix=prefix||'';
+  if(handle.kind==='file'){var f=await handle.getFile();await addFile(prefix+handle.name, f);}
+  else if(handle.kind==='directory'){for await(var entry of handle.values()){await percorrerHandle(entry, prefix+handle.name+'/');}}
 }
 async function handleFiles(fileList){
+  // fileList do input: webkitRelativePath JA tem a estrutura exata pasta/subpasta/arquivo
   for(var i=0;i<fileList.length;i++){var f=fileList[i];
+    if(f.name.toLowerCase().slice(-4)==='.zip' && !f.webkitRelativePath){await addZip(f);continue;}
+    if(f.name.toLowerCase().slice(-4)==='.zip' && f.webkitRelativePath){await addZip(f);continue;}
     var rel=f.webkitRelativePath||f.name;
-    if(f.name.toLowerCase().slice(-4)==='.zip'){await addZip(f);}
-    else{await addFile(rel, f);}
+    await addFile(rel, f);
   }
   atualizarLista();
-  log('✅ Anexados. Total agora: '+arquivos.length+' arquivo(s)','ok');
+  log('✅ Anexado TUDO de uma vez. Total: '+arquivos.length+' arquivo(s) - estrutura exata preservada','ok');
 }
 async function handleDataTransfer(dt){
   var items=dt.items?Array.prototype.slice.call(dt.items):[];
-  var teveEntry=false;
-  for(var i=0;i<items.length;i++){var it=items[i];var entry=it.webkitGetAsEntry?it.webkitGetAsEntry():null;
-    if(entry){teveEntry=true;await percorrerEntry(entry,'');}
+  var usouEntry=false;
+  for(var i=0;i<items.length;i++){var it=items[i];
+    // Tenta API moderna primeiro
+    if(it.getAsFileSystemHandle){try{var h=await it.getAsFileSystemHandle();if(h){usouEntry=true;await percorrerHandle(h,'');continue;}}catch(e){}}
+    var entry=it.webkitGetAsEntry?it.webkitGetAsEntry():null;
+    if(entry){usouEntry=true;await percorrerEntry(entry,'');}
     else if(it.getAsFile){var f=it.getAsFile();if(f){if(f.name.toLowerCase().slice(-4)==='.zip')await addZip(f);else await addFile(f.name,f);}}
   }
-  if(!teveEntry&&dt.files&&dt.files.length){await handleFiles(dt.files);return;}
+  if(!usouEntry && dt.files && dt.files.length){await handleFiles(dt.files);return;}
   atualizarLista();
-  log('✅ Arraste concluido. Total: '+arquivos.length+' arquivo(s)','ok');
+  log('✅ Arraste concluido - TUDO junto. Total: '+arquivos.length+' arquivo(s)','ok');
 }
-// Botoes anexar
 el('btnAnexar').addEventListener('click',function(){el('inputFiles').click();});
 el('btnAnexarPasta').addEventListener('click',function(){el('inputFolder').click();});
-el('btnAnexarZip').addEventListener('click',function(){el('inputZip').click();});
 el('inputFiles').addEventListener('change',function(){handleFiles(this.files);this.value='';});
 el('inputFolder').addEventListener('change',function(){handleFiles(this.files);this.value='';});
-el('inputZip').addEventListener('change',function(){if(this.files[0])addZip(this.files[0]).then(atualizarLista);this.value='';});
-// Drag and drop
 var drop=el('drop');
 ['dragenter','dragover'].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add('dragover');});});
 ['dragleave','drop'].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove('dragover');});});
 drop.addEventListener('drop',function(e){handleDataTransfer(e.dataTransfer);});
 document.body.addEventListener('dragover',function(e){e.preventDefault();});
 document.body.addEventListener('drop',function(e){if(e.target!==drop){e.preventDefault();handleDataTransfer(e.dataTransfer);}});
-// --- Confirmar: corrigir caminhos + importar tudo, rapido em paralelo ---
+// --- CONFIRMAR: 1 clique importa TUDO junto, com estrutura exata ---
 function paraBase64(bytes){var bin='';var chunk=0x8000;for(var i=0;i<bytes.length;i+=chunk){bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));}return btoa(bin);}
-async function enviarUm(token, arquivo, idx, total){
-  var path=arquivo.path;
+async function enviarUm(token, arquivo){
+  var path=arquivo.path; // estrutura exata, sem mudar
   var conteudoB64;
   if(ehTexto(path)){
     var texto=new TextDecoder().decode(arquivo.bytes);
-    var corrigido=corrigirCaminhos(texto);
+    var corrigido=corrigirCaminhos(texto); // so repo, base do link intacta
     conteudoB64=btoa(unescape(encodeURIComponent(corrigido)));
   }else{conteudoB64=paraBase64(arquivo.bytes);}
-  // Se ja existir, precisa do sha para atualizar
   var sha=null;
   var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/')+'?ref='+BRANCH,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
   if(get.ok){var gj=await get.json();if(gj.sha)sha=gj.sha;}
-  var body={message:'MESTRE: importar '+path+' (caminhos corrigidos para korvil-app2)',content:conteudoB64,branch:BRANCH};
+  var body={message:'MESTRE: importar '+path+' (so corrigido sistemak/korvil-app -> sistemak/korvil-app2)',content:conteudoB64,branch:BRANCH};
   if(sha)body.sha=sha;
   var put=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!put.ok){var t=await put.text();throw new Error(put.status+' '+t.slice(0,200));}
@@ -167,26 +184,24 @@ async function enviarUm(token, arquivo, idx, total){
 async function confirmar(){
   try{
     var token=getToken();
-    if(!arquivos.length){alert('Anexe primeiro pastas / arquivos / ZIP.');return;}
-    if(!confirm('Confirmar importacao de '+arquivos.length+' arquivo(s) para https://github.com/sistemak/korvil-app2 ?\n\nVai corrigir todos os caminhos sistemak/korvil-app -> sistemak/korvil-app2 e importar tudo com a mesma estrutura.'))return;
+    if(!arquivos.length){alert('Arraste / anexe primeiro TUDO de uma vez.');return;}
+    if(!confirm('Confirmar importacao de '+arquivos.length+' arquivo(s) para https://github.com/sistemak/korvil-app2 ?\n\n- Mantem EXATAMENTE a mesma estrutura de pastas / arquivos / codigos\n- So corrige sistemak/korvil-app -> sistemak/korvil-app2\n- NAO muda a base dos links\n- Tudo junto em 1 CONFIRMAR, nao individualmente'))return;
     el('log').innerHTML='';
-    log('Corrigindo caminhos sistemak/korvil-app -> sistemak/korvil-app2 e importando '+arquivos.length+' arquivo(s)...','warn');
+    log('Corrigindo SO o repositorio (base dos links intacta) e importando '+arquivos.length+' arquivo(s) de uma vez...','warn');
     var inicio=Date.now();
     var concluidos=0, falhas=0;
     var CONCORRENCIA=6;
     var fila=arquivos.slice();
-    async function trabalhador(){
-      while(fila.length){var arq=fila.shift();try{await enviarUm(token, arq);concluidos++;if(concluidos%10===0||concluidos===arquivos.length)log('Progresso: '+concluidos+'/'+arquivos.length,'ok');}catch(e){falhas++;log('❌ Falhou '+arq.path+': '+e.message,'err');}}
-    }
+    async function trabalhador(){while(fila.length){var arq=fila.shift();try{await enviarUm(token, arq);concluidos++;if(concluidos%10===0||concluidos===arquivos.length)log('Progresso: '+concluidos+'/'+arquivos.length,'ok');}catch(e){falhas++;log('❌ Falhou '+arq.path+': '+e.message,'err');}}}
     var trabalhadores=[];for(var i=0;i<CONCORRENCIA;i++)trabalhadores.push(trabalhador());
     await Promise.all(trabalhadores);
     var seg=((Date.now()-inicio)/1000).toFixed(1);
-    log('🎉 PRONTO em '+seg+'s: '+concluidos+' importados, '+falhas+' falhas de '+arquivos.length,'ok');
+    log('🎉 PRONTO em '+seg+'s: '+concluidos+' importados, '+falhas+' falhas de '+arquivos.length+' - estrutura exata preservada','ok');
     log('Confira em: https://github.com/sistemak/korvil-app2/tree/main','ok');
   }catch(e){log('❌ '+e.message,'err');}
 }
 el('btnTestar').addEventListener('click',testar);
 el('btnConfirmar').addEventListener('click',confirmar);
-log('MESTRE Importar carregado - ATIVAR igual antes. Anexar / arrastar e CONFIRMAR para importar.');
+log('MESTRE corrigido carregado - ATIVAR igual antes. Arraste TUDO de uma vez, CONFIRMAR 1 vez.');
 })();
 </script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
