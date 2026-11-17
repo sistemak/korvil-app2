@@ -173,45 +173,52 @@ drop.addEventListener('drop',function(e){anexarTudo(e.dataTransfer);});
 document.body.addEventListener('dragover',function(e){e.preventDefault();});
 document.body.addEventListener('drop',function(e){if(e.target!==drop){e.preventDefault();anexarTudo(e.dataTransfer);}});
 function paraBase64(bytes){var bin='';var chunk=0x8000;for(var i=0;i<bytes.length;i+=chunk){bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));}return btoa(bin);}
-async function enviarUm(token, arquivo){
-  var path=arquivo.path;
-  var conteudoB64;
-  if(ehTexto(path)){
-    var texto=new TextDecoder().decode(arquivo.bytes);
-    var corrigido=corrigirCaminhos(texto);
-    conteudoB64=btoa(unescape(encodeURIComponent(corrigido)));
-  }else{conteudoB64=paraBase64(arquivo.bytes);}
-  var sha=null;
-  var get=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/')+'?ref='+BRANCH,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
-  if(get.ok){var gj=await get.json();if(gj.sha)sha=gj.sha;}
-  var body={message:'MESTRE: importar '+path+' (so corrigido sistemak/korvil-app -> sistemak/korvil-app2)',content:conteudoB64,branch:BRANCH};
-  if(sha)body.sha=sha;
-  var put=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!put.ok){var t=await put.text();throw new Error(put.status+' '+t.slice(0,200));}
-  return path;
-}
 async function confirmar(){
   try{
     var token=getToken();
     if(!arquivos.length){alert('Arraste ou ANEXAR TUDO primeiro.');return;}
     if(!confirm('Confirmar importacao de '+arquivos.length+' arquivo(s) para https://github.com/sistemak/korvil-app2 ?\n\n- Mantem EXATAMENTE a mesma ordem e mesma estrutura que voce enviou\n- So corrige o nome do repositorio: sistemak/korvil-app -> sistemak/korvil-app2\n- NAO muda a base dos links / caminhos\n- Tudo junto em 1 CONFIRMAR'))return;
     el('log').innerHTML='';
-    log('Arrumei tudo: corrigindo SO o nome do repo e importando '+arquivos.length+' arquivo(s) na mesma ordem...','warn');
+    log('Enviando tudo rapido em 1 unico commit - '+arquivos.length+' arquivo(s) na mesma ordem...','warn');
     var inicio=Date.now();
-    var concluidos=0, falhas=0;
-    // Envia 1 por 1, na ordem exata do ZIP - sem paralelismo, para a ordem ficar exata no GitHub
-    for(var i=0;i<arquivos.length;i++){
-      var arq=arquivos[i];
-      try{ await enviarUm(token, arq); concluidos++; log('Progresso: '+concluidos+'/'+arquivos.length+' - '+arq.path,'ok'); }
-      catch(e){ falhas++; log('❌ Falhou '+arq.path+': '+e.message,'err'); }
+    var refR=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/ref/heads/'+BRANCH,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
+    if(!refR.ok) throw new Error('Nao achei a branch main: '+refR.status);
+    var refJ=await refR.json();
+    var commitSha=refJ.object.sha;
+    var commitR=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/commits/'+commitSha,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
+    var commitJ=await commitR.json();
+    var baseTree=commitJ.tree.sha;
+    log('Criando blobs...','warn');
+    var blobs=new Array(arquivos.length);
+    var CONC=10; var idx=0;
+    async function workerBlob(){
+      while(idx<arquivos.length){
+        var i=idx++; var arq=arquivos[i]; var conteudo=null;
+        if(ehTexto(arq.path)){ var texto=new TextDecoder().decode(arq.bytes); conteudo=corrigirCaminhos(texto); }
+        var body = conteudo!==null ? {content:conteudo, encoding:'utf-8'} : {content:paraBase64(arq.bytes), encoding:'base64'};
+        var br=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/blobs',{method:'POST',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+        if(!br.ok){ var bt=await br.text(); throw new Error('Blob falhou '+arq.path+': '+br.status+' '+bt.slice(0,200)); }
+        var bj=await br.json(); blobs[i]={path:arq.path, sha:bj.sha, mode:'100644', type:'blob'};
+        if((i+1)%20===0||i+1===arquivos.length) log('Blobs: '+(i+1)+'/'+arquivos.length,'ok');
+      }
     }
+    var ws=[]; for(var w=0;w<CONC;w++) ws.push(workerBlob()); await Promise.all(ws);
+    log('Blobs prontos: '+blobs.length,'ok');
+    var treeR=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/trees',{method:'POST',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({base_tree:baseTree, tree:blobs})});
+    if(!treeR.ok){ var tt=await treeR.text(); throw new Error('Tree falhou: '+treeR.status+' '+tt.slice(0,300)); }
+    var treeJ=await treeR.json();
+    var commit2R=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/commits',{method:'POST',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'MESTRE: importar '+arquivos.length+' arquivo(s) (so corrigido sistemak/korvil-app -> sistemak/korvil-app2)', tree:treeJ.sha, parents:[commitSha]})});
+    if(!commit2R.ok){ var ct=await commit2R.text(); throw new Error('Commit falhou: '+commit2R.status+' '+ct.slice(0,300)); }
+    var commit2J=await commit2R.json();
+    var updR=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/git/refs/heads/'+BRANCH,{method:'PATCH',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({sha:commit2J.sha, force:false})});
+    if(!updR.ok){ var ut=await updR.text(); throw new Error('Atualizar main falhou: '+updR.status+' '+ut.slice(0,300)); }
     var seg=((Date.now()-inicio)/1000).toFixed(1);
-    log('🎉 PRONTO em '+seg+'s: '+concluidos+' importados, '+falhas+' falhas de '+arquivos.length+' - mesma ordem e mesma estrutura','ok');
+    log('PRONTO em '+seg+'s: '+arquivos.length+' importados em 1 unico commit - mesma ordem e mesma estrutura','ok');
     log('Confira em: https://github.com/sistemak/korvil-app2/tree/main','ok');
-  }catch(e){log('❌ '+e.message,'err');}
+  }catch(e){log('ERRO '+e.message,'err');}
 }
 el('btnTestar').addEventListener('click',testar);
 el('btnConfirmar').addEventListener('click',confirmar);
-log('MESTRE corrigido carregado - 1 SO botao + 1 SO arrastar, 1 SO funcao. ATIVAR igual antes.');
+log('MESTRE carregado - 1 SO botao + 1 SO arrastar, 1 SO funcao. ATIVAR igual antes.');
 })();
 </script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
