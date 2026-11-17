@@ -20,54 +20,41 @@
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
 </style><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MESTRE - korvil-app2 - Raiz - Bolt igual</title>
+<title>MESTRE - KORVIL - Enviar ZIP para korvil-app2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 body{background:#0b0616;color:#fff;font-family:Arial,sans-serif;margin:0;padding:14px}
 h1{font-size:19px}.card{background:#1a1030;border:1px solid #3a2a66;border-radius:14px;padding:14px;margin:10px 0}
-label{display:block;font-weight:bold;margin:10px 0 4px} input,textarea{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #444;background:#120a24;color:#fff;font-size:15px}
+label{display:block;font-weight:bold;margin:10px 0 4px} input{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #444;background:#120a24;color:#fff;font-size:15px}
 button{width:100%;padding:14px;border:0;border-radius:12px;font-weight:bold;font-size:15px;cursor:pointer;margin:6px 0}
-.b1{background:#ffcc00;color:#000}.b2{background:#00e676;color:#000}.b3{background:#e53935;color:#fff}.b4{background:#2962ff;color:#fff}.b5{background:#7c4dff;color:#fff}
-#log{background:#000;border-radius:10px;padding:12px;min-height:240px;white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.5;max-height:420px;overflow:auto}
-.ok{color:#00e676}.err{color:#ff5252}.warn{color:#ffcc00}.mut{color:#b7a8d9}.ia{color:#00e5ff}
+.b1{background:#ffcc00;color:#000}.b2{background:#00e676;color:#000}.b4{background:#2962ff;color:#fff}.b5{background:#7c4dff;color:#fff}
+#log{background:#000;border-radius:10px;padding:12px;min-height:200px;white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.5;max-height:420px;overflow:auto}
+.ok{color:#00e676}.err{color:#ff5252}.warn{color:#ffcc00}.mut{color:#b7a8d9}
 .drop{border:2px dashed #7c4dff;border-radius:12px;padding:14px;text-align:center;background:#170b2e}
 .small{font-size:12px;color:#b7a8d9}.progress{background:#222;border-radius:8px;overflow:hidden;height:14px;margin:8px 0}.bar{background:#00e676;height:100%;width:0%;transition:width .3s}
-table{width:100%;font-size:12px;border-collapse:collapse}td,th{border-bottom:1px solid #333;padding:6px;text-align:left}
 </style></head><body>
-<h1>🧠 MESTRE - korvil-app2</h1>
-<div class="small">Destino no GitHub: <b>https://github.com/sistemak/korvil-app2/tree/main</b> - raiz, mesma estrutura do Bolt.<br>Bolt antigo: <b>https://korvil-app-operating-j27q.bolt.host/</b><br>Não inventa nada. Só arruma o que você pediu: nome do repo, SHA/commit -&gt; main, link Bolt antigo -&gt; GitHub.</div>
+<h1>🧠 MESTRE - KORVIL App</h1>
+<div class="small">Destino: <b>https://github.com/sistemak/korvil-app2/tree/main</b> - raiz, mesma estrutura do ZIP do Bolt, sem mudar nada.</div>
 
 <div class="card">
-<label>1. REPO_TOKEN - só esse você cola:</label>
+<label>1. REPO_TOKEN:</label>
 <input id="token" type="password" placeholder="ghp_... ou github_pat_...">
 <div class="small">Pode colar com REPO_TOKEN= na frente que eu limpo.</div>
-<button class="b1" id="btnAtivar">✅ ATIVAR TUDO</button>
+<button class="b1" id="btnAtivar">✅ ATIVAR TOKEN</button>
 <div id="statusAtivar" class="small">Ainda não ativado.</div>
-<div class="small">O ATIVAR faz passo por passo e mostra onde travou, não trava tudo num Failed to fetch só. Passo 1: GitHub. Passo 2: Secrets (só confere o nome). Passo 3: Pollinations. Passo 4: cria o workflow que usa os secrets de verdade dentro do Actions.</div>
 </div>
 
 <div class="card">
-<label>2. Excluir antigo (botão separado):</label>
-<button class="b3" id="btnExcluir">🗑️ EXCLUIR TUDO ANTIGO - Nunca exclui o MESTRE</button>
-<div class="small">Exclui só o que for do projeto antigo na raiz, nunca exclui arquivo com MESTRE no nome e nunca exclui .github/workflows/mestre-ias.yml</div>
-</div>
-
-<div class="card">
-<label>3. Anexar - 1 só lugar - ZIP compactado:</label>
-<div class="drop" id="drop">⬇️ ARRASTE O ZIP AQUI<br><span class="small">ZIP do Bolt - extrai mantendo a mesma ordem, pastas, arquivos e códigos</span><br><br><button class="b4" id="btnAnexar" type="button">📎 ANEXAR ZIP / PASTA / ARQUIVOS</button><input type="file" id="fileInput" multiple style="display:none"><input type="file" id="fileDir" webkitdirectory style="display:none"></div>
-<div style="display:flex;gap:8px"><button class="b5" id="btnPasta" type="button" style="flex:1">📁 ANEXAR PASTA INTEIRA</button><button class="b5" id="btnArquivos" type="button" style="flex:1">📄 ANEXAR ARQUIVOS SOLTOS</button></div>
-<div id="listaArquivos" class="small">Nenhum arquivo anexado ainda.</div>
+<label>2. Anexar - ZIP do KORVIL App baixado do Bolt:</label>
+<div class="drop" id="drop">⬇️ ARRASTE O ZIP AQUI<br><span class="small">Ele extrai mantendo a mesma ordem, pastas, arquivos e códigos</span><br><br><button class="b4" id="btnAnexar" type="button">📎 ANEXAR ZIP</button><input type="file" id="fileInput" accept=".zip" style="display:none"></div>
+<div id="listaArquivos" class="small">Nenhum ZIP anexado ainda.</div>
 <div class="progress"><div class="bar" id="bar"></div></div><div id="progTxt" class="small"></div>
 </div>
 
 <div class="card">
-<label>4. Verificar com as 3 IAs juntas - 6 em 6 automático:</label>
-<button class="b1" id="btnVerificar">🔍 VERIFICAR COM AS 3 IAs - ARRUMAR TUDO</button>
-<div class="small">Gemini planeja + GROQ corrige + Pollinations confere = 1 IA só. De 6 em 6 até acabar, sozinho.</div>
-<div id="relatorio"></div>
-<label>5. Confirmar / Enviar:</label>
-<button class="b2" id="btnConfirmar">✅ CONFIRMAR - ENVIAR TUDO NA ORDEM CERTA PARA A RAIZ</button>
-<div class="small">Envia na mesma ordem da estrutura do ZIP para https://github.com/sistemak/korvil-app2/tree/main - sem colocar kai-app/ na frente, sem mudar estrutura.</div>
+<label>3. Confirmar / Enviar:</label>
+<button class="b2" id="btnConfirmar">✅ CONFIRMAR - EXTRAIR E ENVIAR TUDO NA ORDEM CERTA</button>
+<div class="small">Envia na mesma ordem do ZIP para a raiz do repo. Não muda nada no conteúdo.</div>
 </div>
 
 <div class="card"><div id="log">Aguardando ATIVAR...
@@ -75,11 +62,9 @@ table{width:100%;font-size:12px;border-collapse:collapse}td,th{border-bottom:1px
 
 <script>
 var REPO='sistemak/korvil-app2';
-var BOLT='https://korvil-app-operating-j27q.bolt.host/';
-var BOLT2='https://korvil-app-operating-j27q.bolt.host';
-var NOVO='https://github.com/sistemak/korvil-app2/tree/main';
 var arquivos=[];
-var verificado=false, ativado=false;
+var ativado=false;
+var zipNome='';
 function el(id){return document.getElementById(id);}
 function log(m,c){var d=el('log');var s=document.createElement('div');if(c)s.className=c;s.textContent=m;d.appendChild(s);d.scrollTop=d.scrollHeight;}
 function setBar(p,t){el('bar').style.width=p+'%';el('progTxt').textContent=t||'';}
@@ -87,173 +72,93 @@ function clean(t){if(!t)return '';t=String(t).replace(/[\r\n\t]/g,'').trim().rep
 el('token').addEventListener('paste',function(){setTimeout(function(){el('token').value=clean(el('token').value);},30);});
 el('token').addEventListener('blur',function(){el('token').value=clean(el('token').value);});
 try{el('token').value=localStorage.getItem('MESTRE_TOKEN')||'';}catch(e){}
-function ghHeaders(){return {Authorization:'Bearer '+clean(el('token').value),Accept:'application/vnd.github+json','Content-Type':'application/json'};}
 async function gh(path,method,body){
-  var o={method:method||'GET',headers:ghHeaders()};
+  var o={method:method||'GET',headers:{Authorization:'Bearer '+clean(el('token').value),Accept:'application/vnd.github+json','Content-Type':'application/json'}};
   if(body) o.body=JSON.stringify(body);
   return fetch('https://api.github.com/repos/'+REPO+'/'+path,o);
 }
-function workflowYML(){
-  return 'name: MESTRE IAs\non:\n  workflow_dispatch:\n    inputs:\n      tarefa:\n        description: Tarefa do MESTRE\n        required: false\n        default: verificar\njobs:\n  ias:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: 3 IAs juntas como 1 so\n        env:\n          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}\n          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}\n          GH_TOKEN: ${{ secrets.GH_TOKEN }}\n        run: |\n          echo "Gemini presente: $([ -n \"$GEMINI_API_KEY\" ] && echo SIM || echo NAO)"\n          echo "Groq presente: $([ -n \"$GROQ_API_KEY\" ] && echo SIM || echo NAO)"\n          echo "MESTRE workflow OK - as chaves sao usadas aqui dentro do Actions, nunca no navegador."\n';
-}
 
-// ATIVAR - passo por passo, nunca trava tudo num Failed to fetch
 el('btnAtivar').onclick=async function(){
   el('log').innerHTML=''; setBar(0,'Ativando...');
-  log('ATIVAR - passo por passo...','warn');
   var token=clean(el('token').value);
-  if(!token){ log('❌ Passo 1: cole o REPO_TOKEN primeiro.','err'); return; }
+  if(!token){ log('❌ Cole o REPO_TOKEN primeiro.','err'); return; }
   try{localStorage.setItem('MESTRE_TOKEN',token);}catch(e){}
-  // Passo 1 - GitHub
   try{
     var r=await gh('');
-    if(r.status===401){ log('❌ Passo 1 GitHub: 401 - REPO_TOKEN inválido ou expirado. Gera um novo em GitHub > Settings > Developer settings > Personal access tokens > Tokens (classic) com scope repo, e cola de novo.','err'); return; }
-    if(r.status===403){ log('❌ Passo 1 GitHub: 403 - token sem permissão repo.','err'); return; }
-    if(!r.ok){ log('❌ Passo 1 GitHub: HTTP '+r.status,'err'); return; }
-    var j=await r.json(); log('✅ Passo 1 GitHub OK: '+j.full_name,'ok'); setBar(25,'GitHub OK');
-  }catch(e){ log('❌ Passo 1 GitHub: Failed to fetch - sem internet ou navegador bloqueou. Checa Wi-Fi, desativa bloqueador, recarrega a página e tenta de novo. Detalhe: '+e.message,'err'); return; }
-  // Passo 2 - Secrets (só nome, nunca valor)
-  try{
-    var rs=await gh('actions/secrets');
-    if(rs.ok){ var sj=await rs.json(); var nomes=(sj.secrets||[]).map(function(s){return s.name;}); log('Passo 2 Secrets encontrados: '+nomes.join(', '),'mut'); ['GEMINI_API_KEY','GROQ_API_KEY','GH_TOKEN','REPO_TOKEN'].forEach(function(n){ if(nomes.indexOf(n)>=0) log('✅ '+n+' - existe em Actions Secrets','ok'); else log('⚠️ '+n+' - não listado com esse token (pode existir mas o token não tem permissão para listar). Se você viu no print, considere que existe.','warn'); }); }
-    else if(rs.status===403||rs.status===404){ log('⚠️ Passo 2 Secrets: token sem permissão para listar (403/404). Isso é normal se o token não é do dono. Se você viu os 4 no print do GitHub, eles existem - vou seguir.','warn'); log('✅ GEMINI_API_KEY - existe (visto no print)','ok'); log('✅ GROQ_API_KEY - existe (visto no print)','ok'); log('✅ GH_TOKEN - existe (visto no print)','ok'); log('✅ REPO_TOKEN - existe (visto no print)','ok'); }
-    else log('⚠️ Passo 2 Secrets: HTTP '+rs.status+' - vou seguir, o workflow vai usar os secrets de verdade.','warn');
-    setBar(50,'Secrets OK');
-  }catch(e){ log('⚠️ Passo 2 Secrets: Failed to fetch - vou seguir, o workflow vai usar os secrets. Detalhe: '+e.message,'warn'); }
-  // Passo 3 - Pollinations
-  try{ var rp=await fetch('https://text.pollinations.ai/Ola%20responda%20so%20OK'); if(rp.ok) log('✅ Passo 3 Pollinations OK - grátis, sem chave','ok'); else log('⚠️ Passo 3 Pollinations: HTTP '+rp.status+' - vai usar correção local.','warn'); }catch(e){ log('⚠️ Passo 3 Pollinations: sem rede agora - vai usar correção local.','warn'); }
-  setBar(75,'Pollinations OK');
-  // Passo 4 - Cria workflow que usa os secrets DE VERDADE dentro do Actions
-  try{
-    var yml=workflowYML();
-    var getW=await gh('contents/.github%2Fworkflows%2Fmestre-ias.yml?ref=main');
-    var sha=null; if(getW.ok){ var gw=await getW.json(); sha=gw.sha; }
-    var body={message:'MESTRE: criar workflow que usa Actions Secrets de verdade', content:btoa(unescape(encodeURIComponent(yml))), branch:'main'}; if(sha) body.sha=sha;
-    var putW=await gh('contents/.github%2Fworkflows%2Fmestre-ias.yml','PUT',body);
-    if(putW.ok) log('✅ Passo 4 Workflow criado: .github/workflows/mestre-ias.yml - ele usa ${{ secrets.GEMINI_API_KEY }} e ${{ secrets.GROQ_API_KEY }} dentro do Actions. É assim que as chaves funcionam de verdade.','ok');
-    else { var tw=await putW.text(); log('⚠️ Passo 4 Workflow: não consegui criar agora ('+putW.status+'). O resto continua funcionando. '+tw.slice(0,200),'warn'); }
-  }catch(e){ log('⚠️ Passo 4 Workflow: '+e.message+' - o resto continua funcionando.','warn'); }
-  log('✅ Gemini OK via Actions Secrets - planeja','ok');
-  log('✅ GROQ OK via Actions Secrets - corrige rápido','ok');
-  log('✅ 3 IAs ATIVAS COMO 1 SÓ - pode ANEXAR, VERIFICAR e CONFIRMAR','ok');
-  el('statusAtivar').textContent='✅ ATIVADO - 3 IAs como 1 só';
-  el('statusAtivar').style.color='#00e676'; ativado=true; setBar(100,'Ativado!');
-};
-
-el('btnExcluir').onclick=async function(){
-  if(!ativado){log('❌ Ative primeiro.','err');return;}
-  if(!confirm('Excluir tudo antigo na raiz? O MESTRE NÃO será excluído.'))return;
-  if(!confirm('Segunda confirmação - excluir mesmo?'))return;
-  log('Excluindo antigo... nunca exclui o MESTRE','warn');
-  try{
-    var r=await gh('contents/?ref=main');
-    if(r.ok){ var list=await r.json();
-      for(var i=0;i<list.length;i++){ var p=list[i].path; if(p.indexOf('MESTRE')>=0||p.indexOf('mestre')>=0){log('⏭️ Pulando MESTRE: '+p,'mut');continue;} if(p==='.github'){log('⏭️ Pulando .github (workflow das IAs)','mut');continue;}
-        if(list[i].type==='file'){ var del=await gh('contents/'+encodeURIComponent(p),'DELETE',{message:'MESTRE: excluir antigo '+p,sha:list[i].sha,branch:'main'}); log((del.ok?'🗑️ Excluído: ':'❌ Falhou: ')+p,del.ok?'ok':'err'); }
-        else log('⏭️ Pasta (exclua os arquivos dentro dela pelo VERIFICAR/CONFIRMAR): '+p,'mut');
-      }
-    }
-    log('✅ Exclusão feita - MESTRE preservado.','ok');
-  }catch(e){log('❌ '+e.message,'err');}
+    if(r.status===401){ log('❌ GitHub: 401 - REPO_TOKEN inválido ou expirado. Gera um novo com scope repo e cola de novo.','err'); return; }
+    if(r.status===403){ log('❌ GitHub: 403 - token sem permissão repo.','err'); return; }
+    if(!r.ok){ log('❌ GitHub: HTTP '+r.status,'err'); return; }
+    var j=await r.json();
+    log('✅ GitHub OK: '+j.full_name,'ok');
+    log('✅ ACESSO ATIVADO - pode ANEXAR o ZIP e CONFIRMAR.','ok');
+    el('statusAtivar').textContent='✅ ATIVADO - '+j.full_name;
+    el('statusAtivar').style.color='#00e676';
+    ativado=true; setBar(100,'Ativado!');
+  }catch(e){ log('❌ GitHub: Failed to fetch - sem internet ou navegador bloqueou. Checa Wi-Fi, recarrega e tenta de novo. Detalhe: '+e.message,'err'); }
 };
 
 el('btnAnexar').onclick=function(){ el('fileInput').click(); };
-el('btnPasta').onclick=function(){ el('fileDir').click(); };
-el('btnArquivos').onclick=function(){ el('fileInput').click(); };
 el('fileInput').onchange=async function(e){ await adicionar(e.target.files); e.target.value=''; };
-el('fileDir').onchange=async function(e){ await adicionar(e.target.files); e.target.value=''; };
 var drop=el('drop'); drop.ondragover=function(e){e.preventDefault();}; drop.ondrop=async function(e){e.preventDefault();await adicionar(e.dataTransfer.files);};
 async function adicionar(files){
   for(var i=0;i<files.length;i++){ var f=files[i];
-    if(f.name.toLowerCase().endsWith('.zip')){
-      log('📦 Extraindo ZIP: '+f.name+' - mantendo ordem, pastas, arquivos e códigos...','ia');
-      try{ var zip=await JSZip.loadAsync(f); var nomes=Object.keys(zip.files);
-        for(var k=0;k<nomes.length;k++){ var nome=nomes[k]; var entry=zip.files[nome]; if(entry.dir) continue;
-          // Não deixa o ZIP trazer pasta kai-app/ - o destino é a raiz, mesma estrutura do Bolt
-          if(nome.indexOf('kai-app/')===0) nome=nome.slice(8);
-          var isBin=/\.(png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|mp3|mp4)$/i.test(nome);
-          var content=''; if(isBin){ var blob=await entry.async('blob'); content=await new Promise(function(res){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.readAsDataURL(blob);}); } else content=await entry.async('string');
-          arquivos.push({path:nome, content:content, isBinary:isBin, fixes:[]});
+    if(!f.name.toLowerCase().endsWith('.zip')){ log('❌ Só aceita ZIP. Você anexou: '+f.name,'err'); continue; }
+    zipNome=f.name;
+    arquivos=[];
+    log('📦 Extraindo ZIP: '+f.name+' - mantendo ordem, pastas, arquivos e códigos...','warn');
+    try{
+      var zip=await JSZip.loadAsync(f);
+      var nomes=Object.keys(zip.files);
+      log('ZIP tem '+nomes.length+' entradas na ordem original.','mut');
+      for(var k=0;k<nomes.length;k++){ var nome=nomes[k]; var entry=zip.files[nome]; if(entry.dir) continue;
+        // Remove pasta raiz extra do ZIP do Bolt se vier, ex: korvil-app/ ou project/ com 1 nível só - mantém o resto igual
+        // Se o ZIP vier com 1 pasta só em volta de tudo, tira ela. Se vier já na raiz, mantém.
+        var isBin=/\.(png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|mp3|mp4|pdf)$/i.test(nome);
+        var content='';
+        if(isBin){ var blob=await entry.async('blob'); content=await new Promise(function(res){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.readAsDataURL(blob);}); }
+        else content=await entry.async('string');
+        arquivos.push({path:nome, content:content, isBinary:isBin});
+      }
+      // Se todos os arquivos começam com a mesma pasta raiz, tira essa pasta raiz para cair na raiz do repo
+      if(arquivos.length>0){
+        var partes=arquivos[0].path.split('/');
+        if(partes.length>1){
+          var raiz=partes[0]+'/';
+          var todosComRaiz=arquivos.every(function(a){return a.path.indexOf(raiz)===0;});
+          if(todosComRaiz){
+            arquivos.forEach(function(a){ a.path=a.path.slice(raiz.length); });
+            log('Pasta raiz do ZIP removida: '+raiz+' - resto mantido igual.','mut');
+          }
         }
-        log('✅ ZIP extraído: '+arquivos.length+' arquivos, mesma ordem do ZIP.','ok');
-      }catch(e){ log('❌ Erro ao extrair ZIP: '+e.message,'err'); }
-    } else {
-      var p=f.webkitRelativePath||f.name; if(p.indexOf('kai-app/')===0) p=p.slice(8);
-      var txt=''; var isBin2=/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(f.name);
-      if(isBin2){ txt=await new Promise(function(res){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.readAsDataURL(f);}); } else txt=await f.text().catch(function(){return '';});
-      arquivos.push({path:p, content:txt, isBinary:isBin2, fixes:[]});
-    }
+      }
+      el('listaArquivos').textContent=arquivos.length+' arquivo(s) na ordem: '+arquivos.map(function(a){return a.path;}).join(' | ');
+      log('✅ ZIP extraído: '+arquivos.length+' arquivos, mesma ordem do ZIP.','ok');
+      arquivos.forEach(function(a){ log('  📄 '+a.path,'mut'); });
+    }catch(e){ log('❌ Erro ao extrair ZIP: '+e.message,'err'); }
   }
-  el('listaArquivos').textContent=arquivos.length+' arquivo(s) na ordem: '+arquivos.map(function(a){return a.path;}).join(' | ');
-  log('📎 Total anexado: '+arquivos.length+' arquivos.','mut');
 }
-
-function corrigirUm(a){
-  if(a.isBinary) return [];
-  var t=a.content; var fixes=[];
-  function troca(antes,depois,nome){ if(t.indexOf(antes)>=0){ var c=t.split(antes).length-1; t=t.split(antes).join(depois); fixes.push(nome+' ('+c+'x)'); } }
-  // Só o que você pediu:
-  troca(BOLT, NOVO+'/', 'Bolt antigo -> GitHub korvil-app2');
-  troca(BOLT2, NOVO, 'Bolt sem barra -> GitHub');
-  troca('korvil-app-operating-j27q.bolt.host', 'github.com/sistemak/korvil-app2', 'Domínio Bolt -> GitHub');
-  troca('sistemak/korvil-app/', 'sistemak/korvil-app2/', 'Repo korvil-app -> korvil-app2');
-  troca('sistemak/korvil-app"', 'sistemak/korvil-app2"', 'Repo em aspas -> korvil-app2');
-  troca("sistemak/korvil-app'", "sistemak/korvil-app2'", 'Repo aspas simples -> korvil-app2');
-  if(t.indexOf('korvil-app2-2')>=0){ t=t.split('korvil-app2-2').join('korvil-app2'); fixes.push('Corrige korvil-app2-2'); }
-  var antes=t;
-  t=t.replace(/\/commit\/[0-9a-f]{7,40}/g,'/commit/main');
-  t=t.replace(/\/blob\/[0-9a-f]{7,40}\//g,'/blob/main/');
-  t=t.replace(/\/tree\/[0-9a-f]{7,40}/g,'/tree/main');
-  if(t!==antes) fixes.push('SHA/commit antigo -> main');
-  a.content=t; return fixes;
-}
-async function consultarPollinations(lote){
-  try{ var desc=lote.map(function(a){return a.path;}).join(', ');
-    var prompt=encodeURIComponent('Você é parte de 1 IA só com Gemini e GROQ. Analise esses arquivos de um projeto Bolt que vai para GitHub sistemak/korvil-app2. Liste só erros reais de caminho/link do Bolt antigo https://korvil-app-operating-j27q.bolt.host/ que ainda precisem arrumar. Arquivos: '+desc+'. Responda curto: OK ou lista.');
-    var r=await fetch('https://text.pollinations.ai/'+prompt); if(r.ok){ var txt=await r.text(); return txt.slice(0,400); }
-  }catch(e){}
-  return 'OK - correção local aplicada';
-}
-el('btnVerificar').onclick=async function(){
-  if(!ativado){log('❌ Ative primeiro.','err');return;}
-  if(arquivos.length===0){log('❌ Anexe o ZIP primeiro.','err');return;}
-  verificado=false; log('🔍 3 IAs juntas analisando o projeto completo...','ia'); log('Gemini planeja | GROQ corrige | Pollinations confere - de 6 em 6, automático até acabar.','ia');
-  var total=arquivos.length, feitos=0, totalFixes=0; var rel=[];
-  for(var i=0;i<arquivos.length;i+=6){
-    var lote=arquivos.slice(i,i+6); var num=Math.floor(i/6)+1; var totalLotes=Math.ceil(total/6);
-    log('--- Lote '+num+'/'+totalLotes+' - 6 arquivos ---','warn');
-    lote.forEach(function(a){ log('  📄 '+a.path,'mut'); });
-    lote.forEach(function(a){ var f=corrigirUm(a); a.fixes=f; totalFixes+=f.length; if(f.length) log('  ✅ '+a.path+' arrumado: '+f.join(' | '),'ok'); else log('  ⏭️ '+a.path+' já estava certo','mut'); });
-    var conf=await consultarPollinations(lote); log('  🤖 1 IA só (Gemini+GROQ+Pollinations): '+conf,'ia');
-    feitos+=lote.length; setBar(Math.round(feitos/total*100),'Verificado '+feitos+'/'+total);
-    rel.push({lote:num, arquivos:lote.map(function(a){return a.path+(a.fixes.length?' → '+a.fixes.join(', '):' → OK');})});
-    await new Promise(function(res){setTimeout(res,150);});
-  }
-  var h='<table><tr><th>Lote (6 em 6)</th><th>O que foi arrumado</th></tr>'; rel.forEach(function(r){ h+='<tr><td>Lote '+r.lote+'</td><td>'+r.arquivos.join('<br>')+'</td></tr>'; }); h+='</table><div class="small">Total: '+total+' arquivos | Correções: '+totalFixes+' | Mesma ordem da estrutura do ZIP, destino raiz.</div>'; el('relatorio').innerHTML=h;
-  verificado=true; log('✅ TUDO VERIFICADO E ARRUMADO - '+total+' arquivos, '+totalFixes+' correções. Pode CONFIRMAR.','ok'); log('Igual ao Bolt, mas arrumado para https://github.com/sistemak/korvil-app2/tree/main','ok');
-};
 
 el('btnConfirmar').onclick=async function(){
-  if(!ativado){log('❌ Ative primeiro.','err');return;}
-  if(!verificado){log('❌ Verifique primeiro.','err');return;}
-  if(arquivos.length===0){log('❌ Nada para enviar.','err');return;}
-  log('Enviando tudo na ordem certa para a RAIZ...','warn');
+  if(!ativado){ log('❌ Ative primeiro - clica em ATIVAR TOKEN.','err'); return; }
+  if(arquivos.length===0){ log('❌ Anexe o ZIP primeiro.','err'); return; }
+  log('Enviando tudo na ordem certa para a raiz...','warn');
+  log('Destino: https://github.com/sistemak/korvil-app2/tree/main','mut');
   for(var i=0;i<arquivos.length;i++){
     var a=arquivos[i]; var path=a.path.replace(/^\/+/,'');
-    // Destino é a RAIZ - não coloca kai-app/ na frente
-    if(path==='') continue;
+    if(!path) continue;
     setBar(Math.round((i+1)/arquivos.length*100),'Enviando '+(i+1)+'/'+arquivos.length);
     try{
       var get=await gh('contents/'+encodeURIComponent(path)+'?ref=main');
       var sha=null; if(get.ok){ var gj=await get.json(); sha=gj.sha; }
-      var contentB64; if(a.isBinary){ contentB64=a.content.split(',')[1]||''; } else contentB64=btoa(unescape(encodeURIComponent(a.content)));
+      var contentB64;
+      if(a.isBinary){ contentB64=a.content.split(',')[1]||''; }
+      else contentB64=btoa(unescape(encodeURIComponent(a.content)));
       var body={message:'MESTRE: enviar '+path, content:contentB64, branch:'main'}; if(sha) body.sha=sha;
       var put=await gh('contents/'+encodeURIComponent(path),'PUT',body);
       if(put.ok) log('✅ Enviado ('+(i+1)+'/'+arquivos.length+'): '+path,'ok');
       else { var tt=await put.text(); log('❌ Falhou: '+path+' - '+tt.slice(0,300),'err'); }
     }catch(e){ log('❌ Erro ao enviar '+path+': '+e.message,'err'); }
   }
-  log('✅ CONFIRMADO - tudo enviado na ordem certa para https://github.com/sistemak/korvil-app2/tree/main','ok');
-  log('MESTRE preservado - não foi excluído.','ok');
+  log('✅ CONFIRMADO - '+arquivos.length+' arquivos enviados na ordem certa para https://github.com/sistemak/korvil-app2/tree/main','ok');
 };
 </script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
