@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/icons/icon-192.png?v=20261019b" />
+    <link rel="manifest" href="/manifest.json?v=20261019" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="KORVIL" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png?v=20261019b" />
+    <title>KORVIL APP - S.O.K Sistema Operacional Korvil</title>
+    <meta property="og:image" content="/icons/icon-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/icons/icon-512.png" />
+  </head>
+  <body style="background:#000;margin:0;overscroll-behavior:none;">
+    <div id="root"></div>
+    <div id="korvil-splash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(circle at 50% 40%, #0e1a24 0%, #000 75%);">
+      <img src="/logokai.png" alt="" style="width:110px;height:110px;object-fit:contain;animation:korvilSplashPulse 1.6s ease-in-out infinite;" onerror="this.style.display='none'" />
+      <p style="color:#22d3ee;font:600 15px/1.4 system-ui,sans-serif;letter-spacing:0.35em;margin:0;">KORVIL</p>
+      <p style="color:#52525b;font:400 11px/1.4 system-ui,sans-serif;letter-spacing:0.2em;margin:0;">S.O.K &bull; SISTEMA OPERACIONAL KORVIL</p>
+    </div>
+    <style>
+      @keyframes korvilSplashPulse {
+        0%, 100% { transform: scale(1); opacity: 0.85; }
+        50% { transform: scale(1.08); opacity: 1; }
+      }
+    </style>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      /* Esconde e neutraliza a marca d'água "Made in Bolt" (3 camadas). */
+      (function () {
+        var BADGE_CSS = [
+          '#bolt-badge',
+          '[id*="bolt-badge"]',
+          '[class*="bolt-badge"]',
+          '[class*="MadeWithBolt"]',
+          '[class*="made-with-bolt"]',
+          '[class*="watermark"]',
+          'a[href*="bolt.new"]',
+          'iframe[title*="Bolt"]',
+          'iframe[src*="bolt.new"]'
+        ].join(',') + '{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:-9999!important;transform:translateY(200vh)!important;}';
+        var st = document.createElement('style');
+        st.textContent = BADGE_CSS;
+        (document.head || document.documentElement).appendChild(st);
+
+        function neutralize(el) {
+          try {
+            el.style.setProperty('display', 'none', 'important');
+            el.style.setProperty('visibility', 'hidden', 'important');
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('pointer-events', 'none', 'important');
+            el.style.setProperty('z-index', '-9999', 'important');
+            el.setAttribute('aria-hidden', 'true');
+          } catch (e) {}
+        }
+
+        function matches(el) {
+          try {
+            if (!el || el.nodeType !== 1) return false;
+            if (el.id === 'bolt-badge' || /bolt-badge|watermark|madewith/i.test(el.className || '')) return true;
+            if (el.tagName === 'A' && /bolt\.new/.test(el.getAttribute('href') || '')) return true;
+            if (el.tagName === 'IFRAME' && (/bolt/i.test(el.getAttribute('title') || '') || /bolt\.new/.test(el.getAttribute('src') || ''))) return true;
+            if (el.matches && el.matches('a[href*="bolt.new"], [class*="bolt-badge"], [class*="watermark"]')) return true;
+          } catch (e) {}
+          return false;
+        }
+
+        function sweep(root) {
+          try {
+            if (matches(root)) neutralize(root);
+            var all = root.querySelectorAll ? root.querySelectorAll('a[href*="bolt.new"], [id*="bolt-badge"], [class*="bolt-badge"], [class*="watermark"], iframe[title*="Bolt"], iframe[src*="bolt.new"]') : [];
+            for (var i = 0; i < all.length; i++) neutralize(all[i]);
+          } catch (e) {}
+        }
+
+        /* Impede qualquer interação (clique/toque) com o selo, por mais que ele tente. */
+        document.addEventListener('pointerdown', function (e) {
+          var t = e.target;
+          while (t) {
+            if (matches(t)) { e.stopPropagation(); e.preventDefault(); return; }
+            t = t.parentElement;
+          }
+        }, true);
+        document.addEventListener('click', function (e) {
+          var t = e.target;
+          while (t) {
+            if (matches(t)) { e.stopPropagation(); e.preventDefault(); return; }
+            t = t.parentElement;
+          }
+        }, true);
+
+        /* Vigia: qualquer coisa que o Bolt injetar na página é escondida na hora. */
+        var mo = new MutationObserver(function (muts) {
+          for (var i = 0; i < muts.length; i++) {
+            var n = muts[i].addedNodes;
+            for (var j = 0; j < n.length; j++) sweep(n[j]);
+          }
+        });
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        window.addEventListener('load', function () { sweep(document.body); });
+      })();
+    </script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
